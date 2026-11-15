@@ -183,9 +183,9 @@ with col_right:
                 patient_id=patient_id,
             )
             if res["status"] == "SENT":
-                st.success(f"Email successfully delivered to {target_email}!")
+                st.toast(f"✅ Email successfully delivered to {target_email}!", icon="📧")
             else:
-                st.info(f"{res['message']}")
+                st.toast(f"ℹ️ {res['message']}", icon="ℹ️")
             st.rerun()
 
     # Prescription Inventory Watchlist

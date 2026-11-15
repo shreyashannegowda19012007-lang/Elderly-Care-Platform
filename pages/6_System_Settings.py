@@ -125,9 +125,9 @@ with tab_smtp:
                 patient_id=1,
             )
             if res["status"] == "SENT":
-                st.success(f"✅ {res['message']}")
+                st.toast(f"✅ {res['message']}", icon="📧")
             else:
-                st.info(f"ℹ️ {res['message']}")
+                st.toast(f"ℹ️ {res['message']}", icon="ℹ️")
             st.rerun()
 
     st.markdown("---")
