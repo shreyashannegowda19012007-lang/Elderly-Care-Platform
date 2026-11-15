@@ -42,8 +42,8 @@ https://github.com/shreyashannegowda19012007-lang/Elderly-Care-Platform
 Passcodes to explore both roles:
 Senior PIN: `1234` | Caregiver PIN: `8888`
 
-Huge thanks to the organizers and mentors at Makers Need More for hosting an extraordinary hackathon! 
+Huge thanks to the organizers and mentors at Makers Need More (MnM) for hosting an extraordinary hackathon! 
 
-@Makers Need More 
+@Makers Need More (MnM)
 
-#MakersNeedMore #CatalystHackathon #HealthcareTech #ElderlyCare #Python #Streamlit #HealthInformatics #BuildInPublic #OpenSource #AIForGood
+#MakersNeedMore #MnM #CatalystHackathon #HealthcareTech #ElderlyCare #Python #Streamlit #HealthInformatics #BuildInPublic #OpenSource #AIForGood
