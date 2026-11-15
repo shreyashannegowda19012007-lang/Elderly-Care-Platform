@@ -47,7 +47,7 @@ def test_interaction_details_formatting():
         "recommendation": "Avoid combination",
     }
     details = get_interaction_details(sample)
-    assert "🔴" in details
+    assert "[HIGH RISK]" in details
     assert "Risk of bleeding" in details
 
 

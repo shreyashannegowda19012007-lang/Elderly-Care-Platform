@@ -10,7 +10,7 @@ import html
 import streamlit.components.v1 as components
 
 
-def render_speech_button(text_to_speak: str, label: str = "🔊 Read Out Loud", button_id: str = "tts_btn") -> None:
+def render_speech_button(text_to_speak: str, label: str = "Read Out Loud", button_id: str = "tts_btn") -> None:
     """
     Renders an accessible HTML/JS button that speaks the provided text
     using the browser's native Web Speech synthesis engine.

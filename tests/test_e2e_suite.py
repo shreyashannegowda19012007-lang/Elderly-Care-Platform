@@ -289,7 +289,7 @@ class TestTier1FeatureCoverage:
 
         # Format details callout
         formatted = get_interaction_details(warnings_high[0])
-        assert "🔴" in formatted
+        assert "[HIGH RISK]" in formatted
         assert "High Risk" in formatted
 
     def test_appointment_scheduling_and_status(self):

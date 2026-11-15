@@ -148,7 +148,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
             if not already_alerted or force_check:
                 html_body = f"""
                 <div style="font-family: sans-serif; padding: 20px; border: 2px solid #EF4444; border-radius: 8px; background: #FEF2F2;">
-                    <h2 style="color: #991B1B;">⚠️ Overdue Medication Alert</h2>
+                    <h2 style="color: #991B1B;">Overdue Medication Alert</h2>
                     <p>Dear Caretaker,</p>
                     <p><strong>{patient_name}</strong> was scheduled to take <strong>{dose['medication_name']} ({dose['dosage']})</strong> at <strong>{sched_time_str}</strong>.</p>
                     <p style="color: #B91C1C; font-weight: bold;">Status: MISSED (>30 minutes past scheduled time without confirmation).</p>
@@ -178,7 +178,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
             if not already_alerted or force_check:
                 html_body = f"""
                 <div style="font-family: sans-serif; padding: 20px; border: 2px solid #F59E0B; border-radius: 8px; background: #FFFBEB;">
-                    <h2 style="color: #B45309;">💊 Prescription Refill Advisory</h2>
+                    <h2 style="color: #B45309;">Prescription Refill Advisory</h2>
                     <p><strong>{patient_name}'s</strong> prescription for <strong>{m['name']}</strong> is running low.</p>
                     <p>Remaining count: <strong>{m['stock_remaining']}</strong> units (Threshold: {m['refill_threshold']}).</p>
                     <p>Please contact the prescribing pharmacy or schedule a refill order.</p>
@@ -209,10 +209,10 @@ def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emerge
     caretaker = next((u for u in users if u["role"] == "caretaker"), None)
     caretaker_email = caretaker["email"] if caretaker else "caretaker@example.org"
 
-    subject = f"🚨 URGENT: EMERGENCY ASSISTANCE REQUESTED BY {patient_name.upper()}!"
+    subject = f"URGENT: EMERGENCY ASSISTANCE REQUESTED BY {patient_name.upper()}!"
     html_body = f"""
     <div style="font-family: sans-serif; padding: 24px; border: 3px solid #DC2626; border-radius: 12px; background: #FEF2F2;">
-        <h1 style="color: #991B1B; margin-top: 0;">🚨 EMERGENCY SOS ALERT</h1>
+        <h1 style="color: #991B1B; margin-top: 0;">EMERGENCY SOS ALERT</h1>
         <p style="font-size: 18px; color: #7F1D1D;"><strong>{patient_name}</strong> pressed the Emergency Assistance button on the Elderly Touch Portal.</p>
         <p><strong>Timestamp:</strong> {get_now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p><strong>Emergency Contact Phone:</strong> {phone}</p>

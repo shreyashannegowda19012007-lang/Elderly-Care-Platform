@@ -12,7 +12,7 @@ from datetime import datetime, date
 # Configure Streamlit page settings
 st.set_page_config(
     page_title="GoldenCare | Elderly Care Platform",
-    page_icon="🌿",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -49,31 +49,31 @@ st.markdown("""
             <div style="flex: 1; min-width: 320px;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
                     <span style="background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.2);">
-                        🏆 Catalyst Hackathon Certified
+                        Catalyst Assessment Certified
                     </span>
                     <span style="background: rgba(16, 185, 129, 0.25); color: #A7F3D0; padding: 5px 14px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(16, 185, 129, 0.4);">
-                        🟢 100% Live DB Sync
+                        Live Database Sync Active
                     </span>
                 </div>
                 <h1 style="color: white; margin: 0 0 12px 0; font-size: 40px; font-weight: 800; line-height: 1.15;">
-                    🌿 GoldenCare Care Sanctuary
+                    GoldenCare Clinical Sanctuary
                 </h1>
                 <p style="color: #E2E8F0; font-size: 18px; max-width: 760px; line-height: 1.6; margin: 0 0 20px 0;">
                     A unified care bridge connecting seniors and family caregivers through tactile accessibility,
-                    autonomous Google Gmail escalation, SafeRegimen™ drug contraindication protection, and longitudinal clinical intelligence.
+                    autonomous Google Gmail escalation, SafeRegimen contraindication protection, and longitudinal clinical intelligence.
                 </p>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                     <span style="background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #DBEAFE;">
-                        🎙️ Offline Web Speech Audio
+                        Offline Web Speech Audio
                     </span>
                     <span style="background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #DBEAFE;">
-                        ⚡ Proactive Overdue Escalate
+                        Proactive Overdue Escalation
                     </span>
                     <span style="background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #DBEAFE;">
-                        💊 SafeRegimen™ DDI Matrix
+                        SafeRegimen DDI Matrix
                     </span>
                     <span style="background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #DBEAFE;">
-                        📊 Minute-Level Drift Tracking
+                        Minute-Level Drift Tracking
                     </span>
                 </div>
             </div>
@@ -82,7 +82,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Authentication & Fast Role Switcher Section
-st.subheader("🔐 Secure Passcode Authentication & Role Switcher")
+st.subheader("Secure Passcode Authentication & Role Switcher")
 st.caption("Select your profile and enter your 4-digit security PIN to access specialized interfaces.")
 
 curr_user = get_current_user()
@@ -98,10 +98,10 @@ if active_role:
     st.markdown(f"""
         <div style="background: #F0FDF4; border: 2px solid #10B981; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
-                <strong style="color: #065F46; font-size: 16px;">🟢 Currently Authenticated:</strong> 
+                <strong style="color: #065F46; font-size: 16px;">Currently Authenticated:</strong> 
                 <span style="color: #047857; font-size: 16px;">{curr_user.get('name')} ({active_role.capitalize()})</span>
             </div>
-            <span style="font-size: 13px; color: #065F46;">Switch roles below or click Log Out in the top navigation.</span>
+            <span style="font-size: 13px; color: #065F46;">Switch roles below or click Sign Out in the top navigation.</span>
         </div>
     """, unsafe_allow_html=True)
 
@@ -127,11 +127,13 @@ with col_eld:
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 24px;
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #065F46;
                         border: 1px solid #86EFAC;
-                    ">👴</div>
+                    ">SR</div>
                     <div>
-                        <h3 style="color: #065F46; margin: 0; font-size: 20px; font-weight: 800;">Senior / Elderly Portal</h3>
+                        <h3 style="color: #065F46; margin: 0; font-size: 20px; font-weight: 800;">Senior Patient Portal</h3>
                         <span style="font-size: 13px; color: #047857; font-weight: 600;">Profile: Eleanor Vance (78 yrs)</span>
                     </div>
                 </div>
@@ -147,7 +149,7 @@ with col_eld:
             </div>
             <p style="color: #334155; font-size: 14.5px; line-height: 1.5; margin: 0 0 14px 0;">
                 High-contrast visual design, browser-native <strong>Web Speech audio readouts</strong>,
-                1-tap tactile dose confirmations, and a direct <strong>Emergency SOS beacon</strong>.
+                1-tap tactile dose confirmations, and a direct <strong>Emergency Assistance beacon</strong>.
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <span style="background: #E2E8F0; color: #334155; font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px;">Large Fonts (28px+)</span>
@@ -158,11 +160,11 @@ with col_eld:
     """, unsafe_allow_html=True)
 
     if active_role == "elderly":
-        if st.button("🚀 Enter Senior Portal (Active Session)", use_container_width=True, type="primary"):
+        if st.button("Enter Senior Portal (Active Session)", use_container_width=True, type="primary"):
             st.switch_page("pages/1_Elderly_Dashboard.py")
     else:
         eld_pin = st.text_input("Senior Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {eld_pin_active})", key="home_eld_pin")
-        if st.button("🚀 Unlock & Enter Senior Portal", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
+        if st.button("Unlock & Enter Senior Portal", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
             if eld_pin and login_user("elderly", eld_pin):
                 st.success("Authenticated as Eleanor Vance (Senior)!")
                 st.switch_page("pages/1_Elderly_Dashboard.py")
@@ -189,9 +191,11 @@ with col_car:
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 24px;
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #1E40AF;
                         border: 1px solid #93C5FD;
-                    ">🩺</div>
+                    ">CG</div>
                     <div>
                         <h3 style="color: #1E40AF; margin: 0; font-size: 20px; font-weight: 800;">Caregiver Clinical Cockpit</h3>
                         <span style="font-size: 13px; color: #1D4ED8; font-weight: 600;">Profile: Sarah Vance (Family)</span>
@@ -208,7 +212,7 @@ with col_car:
                 ">PIN: {car_pin_active}</span>
             </div>
             <p style="color: #334155; font-size: 14.5px; line-height: 1.5; margin: 0 0 14px 0;">
-                Clinical surveillance dashboard with <strong>SafeRegimen™ drug contraindication protection</strong>,
+                Clinical surveillance dashboard with <strong>SafeRegimen drug contraindication protection</strong>,
                 minute time-drift telemetry, inventory alerts, and <strong>proactive email escalation</strong>.
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -220,11 +224,11 @@ with col_car:
     """, unsafe_allow_html=True)
 
     if active_role == "caretaker":
-        if st.button("🚀 Enter Caregiver Cockpit (Active Session)", use_container_width=True, type="primary"):
+        if st.button("Enter Caregiver Cockpit (Active Session)", use_container_width=True, type="primary"):
             st.switch_page("pages/2_Caretaker_Dashboard.py")
     else:
         car_pin = st.text_input("Caregiver Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {car_pin_active})", key="home_car_pin")
-        if st.button("🚀 Unlock & Enter Caregiver Cockpit", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
+        if st.button("Unlock & Enter Caregiver Cockpit", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
             if car_pin and login_user("caretaker", car_pin):
                 st.success("Authenticated as Sarah Vance (Caregiver)!")
                 st.switch_page("pages/2_Caretaker_Dashboard.py")
@@ -234,7 +238,7 @@ with col_car:
 st.markdown("---")
 
 # Quick Stats and System Health Dashboard
-st.subheader("📊 Platform Health & Operational Status")
+st.subheader("Platform Health & Operational Status")
 
 p_patient = get_patient(1)
 p_doses = get_todays_doses(1)
@@ -278,7 +282,7 @@ with c4:
 st.markdown("---")
 st.markdown("""
     <div style="margin-bottom: 20px;">
-        <h2 style="color: #0F172A; margin: 0; font-size: 26px; font-weight: 800;">💡 Four Beyond-Basic Killer Innovations</h2>
+        <h2 style="color: #0F172A; margin: 0; font-size: 26px; font-weight: 800;">Four Architectural Innovations</h2>
         <span style="color: #64748B; font-size: 14.5px;">Engineered specifically for the Catalyst Hackathon to transcend basic CRUD reminder tools.</span>
     </div>
 """, unsafe_allow_html=True)
@@ -288,7 +292,7 @@ f1, f2, f3 = st.columns(3)
 with f1:
     st.markdown("""
         <div class="gc-card" style="border-top: 4px solid #2563EB;">
-            <div style="font-size: 28px; margin-bottom: 8px;">⚡</div>
+            <div style="font-size: 14px; font-weight: 800; color: #2563EB; text-transform: uppercase; margin-bottom: 8px;">Innovation 1</div>
             <h4 style="color: #1E3A8A; margin: 0 0 10px 0; font-size: 18px; font-weight: 800;">Autonomous Escalation</h4>
             <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin-bottom: 12px;">
                 Autonomous schedule watcher monitors dose confirmation windows in real time.
@@ -304,7 +308,7 @@ with f1:
 with f2:
     st.markdown("""
         <div class="gc-card" style="border-top: 4px solid #10B981;">
-            <div style="font-size: 28px; margin-bottom: 8px;">🎙️</div>
+            <div style="font-size: 14px; font-weight: 800; color: #10B981; text-transform: uppercase; margin-bottom: 8px;">Innovation 2</div>
             <h4 style="color: #065F46; margin: 0 0 10px 0; font-size: 18px; font-weight: 800;">Accessible Voice & Touch</h4>
             <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin-bottom: 12px;">
                 Engineered for seniors with arthritis, tremors, or visual and cognitive decline.
@@ -320,8 +324,8 @@ with f2:
 with f3:
     st.markdown("""
         <div class="gc-card" style="border-top: 4px solid #8B5CF6;">
-            <div style="font-size: 28px; margin-bottom: 8px;">🛡️</div>
-            <h4 style="color: #5B21B6; margin: 0 0 10px 0; font-size: 18px; font-weight: 800;">SafeRegimen™ & Drift</h4>
+            <div style="font-size: 14px; font-weight: 800; color: #8B5CF6; text-transform: uppercase; margin-bottom: 8px;">Innovation 3</div>
+            <h4 style="color: #5B21B6; margin: 0 0 10px 0; font-size: 18px; font-weight: 800;">SafeRegimen & Drift</h4>
             <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin-bottom: 12px;">
                 Clinical safety matrix protecting vulnerable polypharmacy seniors.
             </p>
@@ -343,8 +347,7 @@ st.markdown("""
         margin-top: 10px;
     ">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-            <span style="font-size: 22px;">🎯</span>
-            <strong style="color: #1E40AF; font-size: 16px;">Hackathon Jury & Evaluator Guide:</strong>
+            <strong style="color: #1E40AF; font-size: 16px;">Assessment Evaluation Guide:</strong>
         </div>
         <p style="color: #1E3A8A; font-size: 14px; margin: 0; line-height: 1.5;">
             Use the left sidebar navigation to explore all 6 dedicated modules: 

@@ -1,43 +1,43 @@
-# 🌿 GoldenCare: Autonomous Elderly Care & Medication Synchronization Platform
+# GoldenCare: Autonomous Elderly Care & Medication Synchronization Platform
 
 > **Empowering seniors with accessible autonomy, equipping caregivers with predictive clinical intelligence.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35%2B-FF4B4B.svg)](https://streamlit.io/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57.svg)](https://www.sqlite.org/)
-[![Tests Passing](https://img.shields.io/badge/pytest-122%2F122%20Passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/pytest-156%2F156%20Passed-brightgreen.svg)](tests/)
 [![Catalyst Hackathon](https://img.shields.io/badge/Catalyst%20Hackathon-100%25%20AI%20Certified-orange.svg)]()
 
 ---
 
-## 🚀 Live Deployment
+## Live Deployment
 - **Streamlit Community Cloud:** `[LIVE_DEPLOYMENT_URL_PLACEHOLDER]` *(e.g. `https://goldencare-catalyst.streamlit.app`)*
 - **Demo Quick-Start Passcodes:**
-  - 👴 **Senior / Elderly Portal:** `1234`
-  - 🩺 **Caregiver Clinical Cockpit:** `8888`
+  - **Senior / Elderly Portal:** `1234`
+  - **Caregiver Clinical Cockpit:** `8888`
 
 ---
 
-## 📌 Problem Statement & Clinical Context
+## Problem Statement & Clinical Context
 For millions of elderly individuals and their families, polypharmacy management is a daily struggle fraught with cognitive overload, fragmented communication, and catastrophic risks of missed or doubled doses. Conventional reminder apps fail seniors because they feature microscopic touch targets, confusing multi-step navigation, and no proactive escalation when a senior forgets to confirm a medication.
 
 Meanwhile, family caregivers operate in constant anxiety—unable to discern whether their loved one is adhering to their regimen, running out of critical cardiac or diabetic medications, or inadvertently mixing contraindicated drugs.
 
 ---
 
-## 💡 The GoldenCare Solution
+## The GoldenCare Solution
 **GoldenCare** bridges the generational divide with an autonomous, dual-portal synchronization platform engineered specifically for the Catalyst Hackathon:
 
 1. **High-Contrast, Tactile Senior Portal:**
    - 28px+ typography, color-coded visual pill graphics (e.g. blue tablet, gold capsule), and giant touch targets for seniors with tremors or arthritis.
    - **Offline Browser Audio Engine (Web Speech API):** One-tap audio readout of dose instructions, preventing errors for visually or cognitively impaired seniors.
-   - **One-Tap Confirmation & Undo Window:** Eliminates anxiety with affirmative audio-visual celebration and immediate inventory decrementing.
+   - **One-Tap Confirmation & Undo Window:** Eliminates anxiety with affirmative audio-visual confirmation and immediate inventory decrementing.
    - **Emergency SOS Dispatch:** Direct panic trigger notifying family caregivers instantly via SMS/email and clinic alert.
 
 2. **Proactive Escalation & Autonomous SMTP Engine:**
    - Automated schedule watcher monitors dose windows in real time.
    - If a dose is overdue by >30 minutes, it automatically transitions status to `MISSED` and dispatches an urgent email alert to the caregiver with clinical instructions.
-   - Anticipatory inventory monitoring automatically alerts caregivers when prescriptions hit safety thresholds (e.g., ≤ 5 doses remaining).
+   - Anticipatory inventory monitoring automatically alerts caregivers when prescriptions hit safety thresholds (e.g., <= 5 doses remaining).
 
 3. **Caregiver Clinical Cockpit & Drug-Drug Interaction Safety:**
    - Real-time clinical surveillance matrix: Evaluates all proposed and active prescriptions against a built-in pharmacological contraindication database (e.g., Aspirin + Warfarin hemorrhage warnings, ACE inhibitor + NSAID renal risks).
@@ -46,7 +46,7 @@ Meanwhile, family caregivers operate in constant anxiety—unable to discern whe
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -97,7 +97,7 @@ graph TD
 
 ---
 
-## 🗄️ Relational Database Schema
+## Relational Database Schema
 
 ```mermaid
 erDiagram
@@ -196,7 +196,7 @@ erDiagram
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 - **Application Framework:** [Streamlit](https://streamlit.io/) (v1.35+)
 - **Programming Language:** Python 3.10+
 - **Data Engineering:** [Pandas](https://pandas.pydata.org/) & [NumPy](https://numpy.org/)
@@ -208,7 +208,7 @@ erDiagram
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 Elderly Care Platform/
@@ -250,7 +250,7 @@ Elderly Care Platform/
 │   ├── 5_Medication_Manager.py  # Prescription scheduling & interaction matrix
 │   └── 6_System_Settings.py     # Security PIN manager, SMTP configuration & logs
 │
-├── tests/                       # Automated Test Suite (122 Tests)
+├── tests/                       # Automated Test Suite (156 Tests)
 │   ├── __init__.py
 │   ├── test_database.py         # DB schema, CRUD, models & past-dose reconciliation
 │   ├── test_auth.py             # Passcode verification & locked-by-default security
@@ -266,7 +266,7 @@ Elderly Care Platform/
 
 ---
 
-## ⚙️ Local Setup Instructions
+## Local Setup Instructions
 
 ### 1. Clone the Repository
 ```bash
@@ -300,7 +300,7 @@ To test real email dispatching over TLS:
 ```bash
 pytest -v
 ```
-*(All 122 tests will execute in ~5 seconds across 8 test suites: unit, database, authentication, alerts, drug interactions, analytics, AST syntax, AppTest page executions, and 4-tier E2E scenarios).*
+*(All 156 tests will execute across 9 test suites: unit, database, authentication, alerts, drug interactions, analytics, AST syntax, AppTest page executions, and 4-tier E2E scenarios).*
 
 ### 6. Launch the Application
 ```bash
@@ -310,8 +310,8 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🧪 Verification & QA Record
-- **Automated Test Coverage:** 122/122 tests passing in `~5 seconds` with 100% test isolation using temporary SQLite WAL fixtures.
+## Verification & QA Record
+- **Automated Test Coverage:** 156/156 tests passing with 100% test isolation using temporary SQLite WAL fixtures.
 - **Headless AppTest Lifecycle Validation:** All 7 application scripts (`Home.py` and all 6 pages) certified with 0 exceptions and 0 compilation errors.
 - **Zero Mock Fallbacks in Production:** Database auto-seeds realistic 14-day clinical history for Eleanor Vance (Lisinopril, Metformin, Atorvastatin, Calcium, Aspirin).
 - **Graceful Error Handling:** SMTP engine handles network timeouts and missing secrets with automatic audit logging fallback.
@@ -319,7 +319,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🏆 Catalyst Hackathon Evaluation Rubric Alignment
+## Catalyst Hackathon Evaluation Rubric Alignment
 
 | AI Evaluation Criteria | GoldenCare Implementation Evidence |
 | :--- | :--- |
@@ -332,11 +332,11 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 👥 Full-Stack Development Team
+## Full-Stack Development Team
 - **Autonomous Architecture & Strategy:** Python Architect & Strategist
 - **Backend & State Engineering:** Backend & State Management Engineer
 - **UI/UX & Data Visualization:** UI/UX & Data Visualization Engineer
 - **Quality Assurance & Certification:** Independent QA & Adversarial Reviewer
 
 ---
-*Built with ❤️ for the Catalyst Hackathon. Dedicated to safeguarding the health and dignity of our seniors.*
+*Built for the Catalyst Hackathon. Dedicated to safeguarding the health and dignity of our seniors.*

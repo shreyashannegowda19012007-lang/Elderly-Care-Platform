@@ -34,7 +34,7 @@ patient_name = patient["name"] if patient else "Eleanor Vance"
 
 st.markdown(f"""
     <div style="margin-bottom: 20px;">
-        <h1 style="color: #0F172A; margin: 0 0 6px 0;">💊 Medication & Prescription Manager</h1>
+        <h1 style="color: #0F172A; margin: 0 0 6px 0;">Medication & Prescription Manager</h1>
         <p style="color: #64748B; font-size: 16px; margin: 0;">
             Configure prescriptions, schedules, pill visuals, and verify pharmacological interactions for <strong>{patient_name}</strong>.
         </p>
@@ -43,9 +43,9 @@ st.markdown(f"""
 
 # Tabs: Active Medications, Add New Medication, Drug Interaction Safety Checker
 tab_list, tab_add, tab_interactions = st.tabs([
-    "📋 Active Prescription Regimen",
-    "➕ Prescribe New Medication",
-    "🔬 Drug-Drug Interaction Safety Engine",
+    "Active Prescription Regimen",
+    "Prescribe New Medication",
+    "Drug-Drug Interaction Safety Engine",
 ])
 
 # 1. Active Regimen Tab
@@ -58,7 +58,7 @@ with tab_list:
     else:
         for m in meds:
             m_id = m["id"]
-            with st.expander(f"💊 {m['name']} — {m['dosage']} ({m['time_of_day']} at {m['scheduled_time']})", expanded=False):
+            with st.expander(f"{m['name']} — {m['dosage']} ({m['time_of_day']} at {m['scheduled_time']})", expanded=False):
                 c1, c2, c3 = st.columns([1.5, 1.5, 1])
 
                 with c1:
@@ -71,7 +71,7 @@ with tab_list:
                     st.write(f"**Remaining Inventory:** {m['stock_remaining']} doses")
                     st.write(f"**Refill Threshold:** {m['refill_threshold']} doses")
                     if m["stock_remaining"] <= m["refill_threshold"]:
-                        st.error("⚠️ Stock is below refill warning threshold!")
+                        st.error("Warning: Stock is below refill warning threshold.")
 
                 with c3:
                     st.markdown("#### Quick Actions")
@@ -92,12 +92,12 @@ with tab_list:
                                 stock_remaining=new_stock,
                                 refill_threshold=m["refill_threshold"],
                             )
-                            st.success("Stock updated!")
+                            st.success("Stock updated.")
                             st.rerun()
                         except ValueError as ve:
                             st.error(str(ve))
 
-                    if st.button("🗑️ Remove Prescription", key=f"btn_del_{m_id}", use_container_width=True, type="secondary"):
+                    if st.button("Remove Prescription", key=f"btn_del_{m_id}", use_container_width=True, type="secondary"):
                         delete_medication(m_id)
                         st.warning(f"Prescription {m['name']} removed.")
                         st.rerun()
@@ -128,7 +128,7 @@ with tab_add:
         )
 
         med_override_ack = st.checkbox(
-            "⚠️ Override Clinical Contraindication Warning (Physician-Approved)",
+            "Override Clinical Contraindication Warning (Physician-Approved)",
             value=False,
             help="Check this box ONLY if the prescribing physician has explicitly confirmed this drug combination is clinically indicated despite known drug interactions."
         )
@@ -151,18 +151,18 @@ with tab_add:
             high_risk_interactions = [i for i in interactions if i.get("severity") == "High"]
 
             if high_risk_interactions and not med_override_ack:
-                st.error("🚨 PRESCRIPTION BLOCKED: HIGH-RISK CONTRAINDICATION DETECTED!")
+                st.error("PRESCRIPTION BLOCKED: HIGH-RISK CONTRAINDICATION DETECTED")
                 for inter in high_risk_interactions:
                     st.markdown(f"""
                         <div style="background: #FEF2F2; border-left: 6px solid #DC2626; padding: 14px; border-radius: 8px; margin-bottom: 10px;">
                             <strong style="color: #991B1B; font-size: 16px;">
-                                ⚠️ HIGH RISK CONTRAINDICATION: {inter['drug_1']} + {inter['drug_2']}
+                                CONTRAINDICATION WARNING: {inter['drug_1']} + {inter['drug_2']}
                             </strong>
                             <p style="color: #7F1D1D; margin: 4px 0;">{inter['description']}</p>
-                            <p style="color: #991B1B; font-weight: bold; margin: 0;">👉 Recommendation: {inter['recommendation']}</p>
+                            <p style="color: #991B1B; font-weight: bold; margin: 0;">Recommendation: {inter['recommendation']}</p>
                         </div>
                     """, unsafe_allow_html=True)
-                st.warning("⛔ Medication was NOT scheduled to protect patient safety. If physician explicitly approves, check the override box and re-submit.")
+                st.warning("Medication was NOT scheduled to protect patient safety. If physician explicitly approves, check the override box and re-submit.")
                 from db.database import add_alert
                 add_alert(
                     patient_id=patient_id,
@@ -173,7 +173,7 @@ with tab_add:
             else:
                 if interactions:
                     if med_override_ack:
-                        st.info("ℹ️ Physician override acknowledged for known interactions.")
+                        st.info("Physician override acknowledged for known interactions.")
                         from db.database import add_alert
                         add_alert(
                             patient_id=patient_id,
@@ -198,15 +198,15 @@ with tab_add:
                         stock_remaining=med_stock,
                         refill_threshold=med_refill,
                     )
-                    st.toast(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!", icon="💊")
-                    st.success(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!")
+                    st.toast(f"Successfully scheduled {med_name} ({med_dosage}) at {time_str}.")
+                    st.success(f"Successfully scheduled {med_name} ({med_dosage}) at {time_str}.")
                     st.rerun()
                 except ValueError as ve:
                     st.error(f"Cannot schedule medication: {str(ve)}")
 
 # 3. Drug Interaction Safety Matrix Tab
 with tab_interactions:
-    st.subheader("🔬 Active Drug-Drug Interaction Safety Catalog")
+    st.subheader("Active Drug-Drug Interaction Safety Catalog")
     st.caption("Automated surveillance matrix analyzing all medications currently prescribed to Eleanor Vance.")
 
     existing_meds = get_medications(patient_id, active_only=True)
@@ -220,7 +220,7 @@ with tab_interactions:
             st.markdown(f"""
                 <div style="background: #FFFBEB; border: 2px solid #F59E0B; border-radius: 10px; padding: 16px; margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 style="margin: 0; color: #B45309;">⚠️ {w['drug_1']} ↔ {w['drug_2']}</h4>
+                        <h4 style="margin: 0; color: #B45309;">{w['drug_1']} &bull; {w['drug_2']}</h4>
                         <span style="background: #F59E0B; color: white; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: bold;">
                             {w['severity']} Risk
                         </span>
@@ -230,10 +230,10 @@ with tab_interactions:
                 </div>
             """, unsafe_allow_html=True)
     else:
-        st.success("✅ No adverse drug-drug interactions detected among Eleanor's current medications.")
+        st.success("No adverse drug-drug interactions detected among Eleanor's current medications.")
 
     st.markdown("---")
-    st.markdown("#### 📚 Reference Drug Interaction Safety Rules in Clinical Knowledge Base")
+    st.markdown("#### Reference Drug Interaction Safety Rules in Clinical Knowledge Base")
     from db.database import get_drug_interactions
     kb_rules = get_drug_interactions()
     if kb_rules:

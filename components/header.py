@@ -42,17 +42,20 @@ def render_app_header() -> None:
         st.markdown("""
             <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
                 <div style="
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 14px;
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
                     background: linear-gradient(135deg, #10B981 0%, #059669 100%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-                    font-size: 26px;
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: white;
+                    letter-spacing: -0.05em;
                 ">
-                    🌿
+                    GC
                 </div>
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -67,7 +70,7 @@ def render_app_header() -> None:
                             font-weight: 700;
                             text-transform: uppercase;
                             letter-spacing: 0.05em;
-                        ">v2.4 Active</span>
+                        ">Clinical v2.4</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
                         <span class="pulse-green"></span>
@@ -80,7 +83,6 @@ def render_app_header() -> None:
     with col_actions:
         if authenticated and role:
             role_badge_bg = "linear-gradient(135deg, #10B981 0%, #059669 100%)" if role == "elderly" else "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)"
-            role_icon = "👴" if role == "elderly" else "🩺"
             role_title = "Senior Patient" if role == "elderly" else "Caregiver / Family"
 
             st.markdown(f"""
@@ -97,22 +99,22 @@ def render_app_header() -> None:
                         gap: 6px;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     ">
-                        <span>{role_icon}</span> {role_title}: <strong>{user_name}</strong>
+                        {role_title}: <strong>{user_name}</strong>
                     </span>
                 </div>
             """, unsafe_allow_html=True)
 
             sc1, sc2 = st.columns(2)
             with sc1:
-                if st.button("🚪 Log Out / Switch", key="hdr_btn_logout", use_container_width=True):
+                if st.button("Sign Out / Switch", key="hdr_btn_logout", use_container_width=True):
                     logout_user()
                     st.rerun()
 
             with sc2:
-                if st.button("🚨 Emergency SOS", key="hdr_sos_btn", type="primary", use_container_width=True):
+                if st.button("EMERGENCY SOS", key="hdr_sos_btn", type="primary", use_container_width=True):
                     dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
-                    st.toast("🚨 EMERGENCY ALERT SENT TO CAREGIVER & CLINIC!", icon="🚨")
-                    st.error("🚨 Emergency Alert Dispatched! Caregiver Sarah has been notified via phone & email.")
+                    st.toast("EMERGENCY ALERT SENT TO CAREGIVER & CLINIC")
+                    st.error("Emergency Alert Dispatched! Caregiver Sarah has been notified via phone and email.")
         else:
             st.markdown("""
                 <div style="text-align: right; margin-bottom: 8px;">
@@ -128,19 +130,19 @@ def render_app_header() -> None:
                         gap: 6px;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     ">
-                        <span>🔒</span> Portal Locked (PIN Required)
+                        Portal Locked (PIN Required)
                     </span>
                 </div>
             """, unsafe_allow_html=True)
             sc1, sc2 = st.columns(2)
             with sc1:
-                if st.button("🏠 Home / Login", key="hdr_btn_home", use_container_width=True):
+                if st.button("Home / Login", key="hdr_btn_home", use_container_width=True):
                     st.switch_page("Home.py")
             with sc2:
-                if st.button("🚨 Emergency SOS", key="hdr_sos_unauth", type="primary", use_container_width=True):
+                if st.button("EMERGENCY SOS", key="hdr_sos_unauth", type="primary", use_container_width=True):
                     dispatch_sos_alert(patient_id=1)
-                    st.toast("🚨 EMERGENCY ALERT SENT!", icon="🚨")
-                    st.error("🚨 Emergency Alert Dispatched!")
+                    st.toast("EMERGENCY ALERT SENT")
+                    st.error("Emergency Alert Dispatched!")
 
     st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 10px 0 20px 0;'></div>", unsafe_allow_html=True)
 
@@ -154,7 +156,7 @@ def render_alert_banner(patient_id: int = 1) -> None:
         st.markdown(f"""
             <div style="background-color: #FEF2F2; border-left: 5px solid #EF4444; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <span style="color: #991B1B; font-weight: 700; font-size: 14px;">⚠️ Active Clinical Alert: </span>
+                    <span style="color: #991B1B; font-weight: 700; font-size: 14px;">Active Clinical Alert: </span>
                     <span style="color: #7F1D1D; font-size: 14px;">{msg}</span>
                 </div>
             </div>

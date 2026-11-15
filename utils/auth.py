@@ -113,7 +113,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
 
     st.markdown("""
         <div style="background-color: #F8FAFC; border: 2px solid #CBD5E1; border-radius: 12px; padding: 24px; max-width: 540px; margin: 20px auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-            <h3 style="color: #1E293B; margin-top: 0; text-align: center;">🔐 Passcode Authentication Required</h3>
+            <h3 style="color: #1E293B; margin-top: 0; text-align: center;">Passcode Authentication Required</h3>
             <p style="color: #64748B; font-size: 14px; text-align: center; margin-bottom: 0;">
                 Please enter your 4-digit security PIN to access this screen.
             </p>
@@ -122,7 +122,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
 
     # Show only the relevant role login if allowed_roles has a single role
     if allowed_roles and len(allowed_roles) == 1 and allowed_roles[0] == "caretaker":
-        st.markdown("#### 🩺 Caretaker PIN Verification")
+        st.markdown("#### Caretaker PIN Verification")
         st.caption("Clinical cockpit, analytics & scheduling")
         car_pin = st.text_input("Enter Caretaker PIN", type="password", key="login_single_car_pin", placeholder=f"Configured: {car_pin_cfg}")
         if st.button("Unlock Caretaker Portal", key="btn_unlock_car", use_container_width=True, type="primary"):
@@ -131,13 +131,13 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                 st.rerun()
             else:
                 st.error(f"Invalid Caretaker PIN. (Configured: {car_pin_cfg})")
-        st.info(f"💡 **Evaluator Quick-Start**: Active Caretaker PIN is `{car_pin_cfg}`.")
+        st.info(f"**Evaluator Quick-Start**: Active Caretaker PIN is `{car_pin_cfg}`.")
         return
 
     col1, col2 = st.columns([1, 1])
 
     with col1:
-        st.markdown("#### 👴 Elderly Mode")
+        st.markdown("#### Senior / Elderly Mode")
         st.caption("Simplified large-print touch portal")
         elderly_pin = st.text_input("Enter Elderly PIN", type="password", key="login_elderly_pin", placeholder=f"Configured: {eld_pin_cfg}")
         if st.button("Unlock Elderly Portal", key="btn_unlock_eld", use_container_width=True, type="primary"):
@@ -148,7 +148,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                 st.error(f"Invalid Elderly PIN. (Configured: {eld_pin_cfg})")
 
     with col2:
-        st.markdown("#### 🩺 Caretaker Mode")
+        st.markdown("#### Caretaker Mode")
         st.caption("Clinical cockpit, analytics & scheduling")
         caretaker_pin = st.text_input("Enter Caretaker PIN", type="password", key="login_caretaker_pin", placeholder=f"Configured: {car_pin_cfg}")
         if st.button("Unlock Caretaker Portal", key="btn_unlock_car_dual", use_container_width=True):
@@ -159,7 +159,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                 st.error(f"Invalid Caretaker PIN. (Configured: {car_pin_cfg})")
 
     st.markdown("---")
-    st.info(f"💡 **Hackathon Evaluator Quick-Start**: Configured PIN for Elderly is `{eld_pin_cfg}`, and Caretaker is `{car_pin_cfg}`.")
+    st.info(f"**Hackathon Evaluator Quick-Start**: Configured PIN for Elderly is `{eld_pin_cfg}`, and Caretaker is `{car_pin_cfg}`.")
 
 
 def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
@@ -172,7 +172,7 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
 
     # If unauthenticated, show login
     if not st.session_state.get("authenticated", False):
-        st.warning("⚠️ You must enter your security PIN to access this screen.")
+        st.warning("You must enter your security PIN to access this screen.")
         render_login_form(allowed_roles)
         st.stop()
         return False
@@ -180,7 +180,7 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
     # Check role permissions if specified
     current_role = st.session_state.get("user_role")
     if allowed_roles and current_role not in allowed_roles:
-        st.error(f"⛔ Access Restricted: This section requires {' or '.join(allowed_roles).capitalize()} authorization.")
+        st.error(f"Access Restricted: This section requires {' or '.join(allowed_roles).capitalize()} authorization.")
         st.write(f"You are currently logged in as **{st.session_state.get('user_name', 'Unknown')}** ({str(current_role).capitalize()}).")
         
         target_role = allowed_roles[0]
@@ -188,7 +188,7 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
         target_u = next((u for u in users if u["role"] == target_role), None)
         target_pin_cfg = target_u["passcode"] if target_u and target_u.get("passcode") else ("1234" if target_role == "elderly" else "8888")
 
-        st.markdown(f"#### 🔐 Enter {target_role.capitalize()} Passcode to Elevate Access")
+        st.markdown(f"#### Enter {target_role.capitalize()} Passcode to Elevate Access")
         elev_pin = st.text_input(f"{target_role.capitalize()} PIN", type="password", key=f"elev_pin_{target_role}", placeholder=f"Configured: {target_pin_cfg}")
         
         c1, c2 = st.columns(2)
@@ -200,7 +200,7 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
                 else:
                     st.error(f"Invalid {target_role.capitalize()} PIN. (Configured: {target_pin_cfg})")
         with c2:
-            if st.button("🚪 Log Out / Change Profile", key="btn_elev_logout", use_container_width=True):
+            if st.button("Log Out / Change Profile", key="btn_elev_logout", use_container_width=True):
                 logout_user()
                 st.rerun()
 

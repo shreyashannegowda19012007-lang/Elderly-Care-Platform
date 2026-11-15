@@ -39,7 +39,7 @@ patient_name = patient["name"] if patient else "Eleanor Vance"
 
 st.markdown(f"""
     <div style="margin-bottom: 20px;">
-        <h1 style="color: #0F172A; margin: 0 0 6px 0;">📊 Longitudinal Adherence & Clinical Analytics</h1>
+        <h1 style="color: #0F172A; margin: 0 0 6px 0;">Longitudinal Adherence & Clinical Analytics</h1>
         <p style="color: #64748B; font-size: 16px; margin: 0;">
             Comprehensive behavioral adherence metrics and timing intelligence for <strong>{patient_name}</strong>.
         </p>
@@ -80,7 +80,7 @@ with c_kpis:
             margin-top: 14px;
         ">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <span style="font-weight: 800; color: #1E3A8A; font-size: 15px;">🩺 Geriatric Adherence Evaluation</span>
+                <span style="font-weight: 800; color: #1E3A8A; font-size: 15px;">Geriatric Adherence Evaluation</span>
                 <span style="background: #10B981; color: white; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700;">GRADE: A+ OPTIMAL</span>
             </div>
             <p style="color: #334155; font-size: 14px; line-height: 1.5; margin: 0;">
@@ -94,7 +94,7 @@ with c_kpis:
 st.markdown("---")
 
 # Longitudinal Daily Adherence Bar/Trend Chart
-st.subheader(f"📈 Daily Dose Completion & Adherence Rate (Past {selected_period} Days)")
+st.subheader(f"Daily Dose Completion & Adherence Rate (Past {selected_period} Days)")
 st.caption("Stacked daily doses taken vs missed, overlayed with daily compliance percentage.")
 st.plotly_chart(render_daily_adherence_chart(df_ts), use_container_width=True)
 
@@ -102,18 +102,18 @@ st.plotly_chart(render_daily_adherence_chart(df_ts), use_container_width=True)
 c_diurnal, c_drift = st.columns([1.1, 1.4])
 
 with c_diurnal:
-    st.subheader("🌅 Diurnal Compliance Rates")
+    st.subheader("Diurnal Compliance Rates")
     st.caption("Adherence rate by time of day slot.")
     st.plotly_chart(render_time_of_day_chart(df_tod), use_container_width=True)
 
 with c_drift:
-    st.subheader("⏱️ Schedule Variance & Time Drift")
+    st.subheader("Schedule Variance & Time Drift")
     st.caption("Minutes difference between scheduled time and actual confirmation.")
     st.plotly_chart(render_time_drift_chart(df_drift), use_container_width=True)
 
 # Exportable Clinical Provider Summary & CSV Download
 st.markdown("---")
-st.subheader("📥 Export Clinical Consultation Dossier")
+st.subheader("Export Clinical Consultation Dossier")
 st.caption("Download comprehensive adherence and physiological telemetry for physician review.")
 
 csv_data = generate_clinical_csv_export(patient_id, days=selected_period)
@@ -124,7 +124,7 @@ col_dl1, col_dl2 = st.columns([1.5, 2.5])
 
 with col_dl1:
     st.download_button(
-        label="📄 Download Doctor's Audit CSV",
+        label="Download Doctor's Audit CSV",
         data=csv_data,
         file_name=filename,
         mime="text/csv",
@@ -133,4 +133,4 @@ with col_dl1:
     )
 
 with col_dl2:
-    st.info(f"💡 Certified clinical export includes complete dose confirmations, timestamp drifts, and inventory logs.")
+    st.info("Certified clinical export includes complete dose confirmations, timestamp drifts, and inventory logs.")

@@ -48,19 +48,19 @@ def render_elderly_dose_card(
     if status == "TAKEN":
         card_bg = "linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
         border_color = "#10B981"
-        badge_text = f"✅ TAKEN" + (f" ({str(taken_at)[11:16]})" if taken_at else "")
+        badge_text = f"TAKEN" + (f" ({str(taken_at)[11:16]})" if taken_at else "")
         badge_bg = "linear-gradient(135deg, #10B981 0%, #059669 100%)"
         accent_color = "#047857"
     elif status == "MISSED":
         card_bg = "linear-gradient(135deg, #FEF2F2 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
         border_color = "#EF4444"
-        badge_text = "⚠️ OVERDUE"
+        badge_text = "OVERDUE"
         badge_bg = "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
         accent_color = "#B91C1C"
     else:  # PENDING
         card_bg = "linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
         border_color = "#3B82F6"
-        badge_text = "⏳ SCHEDULED"
+        badge_text = "SCHEDULED"
         badge_bg = "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
         accent_color = "#1D4ED8"
 
@@ -81,20 +81,21 @@ def render_elderly_dose_card(
                         <div style="
                             width: 32px;
                             height: 32px;
-                            border-radius: 10px;
+                            border-radius: 8px;
                             background: {pill_color};
                             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             color: white;
-                            font-size: 16px;
+                            font-size: 13px;
                             font-weight: 800;
                             border: 2px solid white;
-                        ">💊</div>
+                            letter-spacing: 0.5px;
+                        ">Rx</div>
                         <div>
                             <span style="font-size: 15px; font-weight: 800; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.05em;">
-                                {time_of_day} • {time_formatted}
+                                {time_of_day} &bull; {time_formatted}
                             </span>
                             <span style="font-size: 13px; color: #64748B; font-weight: 600; margin-left: 6px;">({pill_shape})</span>
                         </div>
@@ -116,7 +117,7 @@ def render_elderly_dose_card(
                     {name} <span style="font-size: 20px; font-weight: 600; color: #64748B;">({dosage})</span>
                 </div>
                 <div style="font-size: 16px; color: #334155; line-height: 1.5; background: rgba(241, 245, 249, 0.8); border: 1px solid #E2E8F0; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;">
-                    <span style="font-weight: 700; color: #1E293B;">📋 Doctor's Direction:</span> {instructions}
+                    <span style="font-weight: 700; color: #1E293B;">Directions:</span> {instructions}
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -126,15 +127,15 @@ def render_elderly_dose_card(
 
         with col_btn1:
             if status != "TAKEN":
-                btn_label = f"👍 I Took My {name}"
+                btn_label = f"Record Dose: I Took My {name}"
                 if st.button(btn_label, key=f"{key_prefix}_take_btn_{log_id}", type="primary", use_container_width=True):
                     mark_dose_status(log_id, status="TAKEN", recorded_by="elderly", notes="Self-confirmed by patient.")
-                    st.toast(f"Great job Eleanor! You took your {name}.", icon="🌟")
+                    st.toast(f"Dose logged: Eleanor recorded {name}.")
                     st.rerun()
             else:
                 c_sub1, c_sub2 = st.columns([2, 1])
                 with c_sub1:
-                    st.success(f"Dose recorded at {str(taken_at)[11:16] if taken_at else 'scheduled time'}. Well done!")
+                    st.success(f"Dose recorded at {str(taken_at)[11:16] if taken_at else 'scheduled time'}. Completed.")
                 with c_sub2:
                     if st.button("Undo", key=f"{key_prefix}_undo_{log_id}", use_container_width=True):
                         mark_dose_status(log_id, status="PENDING", recorded_by="elderly", notes="Undone by user.")
@@ -142,7 +143,7 @@ def render_elderly_dose_card(
 
         with col_btn2:
             speech_text = f"Time for {name}, {dosage}. Scheduled for {time_of_day} at {time_formatted}. Instructions: {instructions}"
-            render_speech_button(text_to_speak=speech_text, label="🔊 Read to Me", button_id=f"{key_prefix}_tts_{log_id}")
+            render_speech_button(text_to_speak=speech_text, label="Listen to Audio", button_id=f"{key_prefix}_tts_{log_id}")
 
 
 def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:
@@ -166,28 +167,30 @@ def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:
                         height: 44px;
                         background: #DC2626;
                         color: white;
-                        border-radius: 12px;
+                        border-radius: 10px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 24px;
-                    ">🚨</div>
+                        font-size: 16px;
+                        font-weight: 800;
+                        letter-spacing: 0.5px;
+                    ">SOS</div>
                     <div>
                         <h2 style="color: #991B1B; margin: 0; font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif;">Need Immediate Help?</h2>
-                        <span style="font-size: 15px; color: #7F1D1D; font-weight: 600;">One-tap emergency broadcast to your family & clinic</span>
+                        <span style="font-size: 15px; color: #7F1D1D; font-weight: 600;">One-tap emergency broadcast to your family and primary clinic</span>
                     </div>
                 </div>
                 <div style="background: white; border: 1.5px solid #FCA5A5; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #991B1B;">
-                    📞 Priority Contact: {ec_name} • {ec_phone}
+                    Priority Contact: {ec_name} &bull; {ec_phone}
                 </div>
             </div>
             <p style="font-size: 16px; color: #7F1D1D; margin: 0 0 16px 0; line-height: 1.5;">
-                Press the button below. Your location and emergency alert will be dispatched via automated phone notification, text message, and priority email.
+                Press the button below. Your status and emergency notification will be dispatched via automated alert systems and priority email.
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-    if st.button("🚨 PRESS FOR EMERGENCY ASSISTANCE", key="elderly_big_sos", type="primary", use_container_width=True):
+    if st.button("DISPATCH EMERGENCY ASSISTANCE REQUEST", key="elderly_big_sos", type="primary", use_container_width=True):
         from utils.alerts import dispatch_sos_alert
         dispatch_sos_alert(patient_id=patient["id"], notes="Triggered from Elderly Home Dashboard")
-        st.error(f"🚨 Help alert dispatched! Your caregiver {ec_name} has been notified immediately.")
+        st.error(f"Help alert dispatched: Your caregiver {ec_name} has been notified immediately.")

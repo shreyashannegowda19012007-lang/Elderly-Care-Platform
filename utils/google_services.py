@@ -184,5 +184,5 @@ def get_google_services_health() -> Dict[str, Any]:
         "server": f"{cfg['server']}:{cfg['port']}",
         "authenticated_user": cfg["username"] if cfg["is_configured"] else "None (Sandbox)",
         "tls_enabled": cfg["use_tls"],
-        "status_label": "🟢 Connected (Google Mail TLS)" if cfg["is_configured"] else "🟡 Google Services Sandbox Mode",
+        "status_label": "Connected (Google Mail TLS)" if cfg["is_configured"] else "Google Services Sandbox Mode",
     }

@@ -35,7 +35,7 @@ patient_name = patient["name"] if patient else "Eleanor Vance"
 
 st.markdown(f"""
     <div style="margin-bottom: 20px;">
-        <h1 style="color: #0F172A; margin: 0 0 6px 0;">📅 Appointments & Health Vitals Telemetry</h1>
+        <h1 style="color: #0F172A; margin: 0 0 6px 0;">Appointments & Health Vitals Telemetry</h1>
         <p style="color: #64748B; font-size: 16px; margin: 0;">
             Manage clinical consultations, specialized geriatric exams, and daily physiological biomarkers for <strong>{patient_name}</strong>.
         </p>
@@ -43,8 +43,8 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 tab_apts, tab_vitals = st.tabs([
-    "🩺 Clinical Appointments Calendar",
-    "📈 Daily Vitals & Biometric Tracking",
+    "Clinical Appointments Calendar",
+    "Daily Vitals & Biometric Tracking",
 ])
 
 # 1. Appointments Calendar Tab
@@ -63,7 +63,7 @@ with tab_apts:
                 apt_id = apt["id"]
                 apt_dt = datetime.strptime(apt["appointment_date"], "%Y-%m-%d").date()
                 days_away = (apt_dt - date.today()).days
-                countdown_label = "Today!" if days_away == 0 else (f"Tomorrow" if days_away == 1 else f"In {days_away} days")
+                countdown_label = "Today" if days_away == 0 else (f"Tomorrow" if days_away == 1 else f"In {days_away} days")
 
                 with st.container():
                     st.markdown(f"""
@@ -79,15 +79,15 @@ with tab_apts:
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <strong style="font-size: 18px; color: #1E293B;">{apt['title']}</strong>
                                 <span style="background: #EFF6FF; color: #1D4ED8; font-weight: 700; padding: 4px 10px; border-radius: 9999px; font-size: 13px;">
-                                    ⏳ {countdown_label} ({apt['appointment_date']} at {apt['appointment_time']})
+                                    {countdown_label} ({apt['appointment_date']} at {apt['appointment_time']})
                                 </span>
                             </div>
                             <div style="margin: 8px 0; color: #475569; font-size: 14px;">
-                                👨‍⚕️ <strong>Physician:</strong> {apt['doctor_name']} • 🏥 <strong>Clinic:</strong> {apt['clinic_address']}
+                                <strong>Physician:</strong> {apt['doctor_name']} &bull; <strong>Clinic:</strong> {apt['clinic_address']}
                             </div>
                             <div style="background: #F8FAFC; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #334155;">
-                                🚗 <strong>Transport Assistance:</strong> {'Required & Scheduled' if apt['transport_required'] else 'Self-Arranged'}<br/>
-                                📝 <strong>Prep Instructions:</strong> {apt['prep_notes'] or 'Standard follow-up.'}
+                                <strong>Transport Assistance:</strong> {'Required & Scheduled' if apt['transport_required'] else 'Self-Arranged'}<br/>
+                                <strong>Prep Instructions:</strong> {apt['prep_notes'] or 'Standard follow-up.'}
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -96,7 +96,7 @@ with tab_apts:
                     with btn_c1:
                         if st.button("Mark Completed", key=f"apt_done_{apt_id}", use_container_width=True):
                             update_appointment_status(apt_id, "COMPLETED")
-                            st.success("Appointment completed!")
+                            st.success("Appointment completed.")
                             st.rerun()
                     with btn_c2:
                         if st.button("Cancel Appointment", key=f"apt_cancel_{apt_id}", use_container_width=True):
@@ -107,9 +107,9 @@ with tab_apts:
         # Completed Appointments History Expander
         completed_apts = [a for a in appointments if a["status"] != "SCHEDULED"]
         if completed_apts:
-            with st.expander(f"📁 Past & Cancelled Consultations ({len(completed_apts)})"):
+            with st.expander(f"Past & Cancelled Consultations ({len(completed_apts)})"):
                 for ca in completed_apts:
-                    st.write(f"• **{ca['appointment_date']}**: {ca['title']} with {ca['doctor_name']} — Status: *{ca['status']}*")
+                    st.write(f"&bull; **{ca['appointment_date']}**: {ca['title']} with {ca['doctor_name']} — Status: *{ca['status']}*")
 
     with c_ap2:
         st.subheader("Schedule New Appointment")
@@ -148,7 +148,7 @@ with tab_apts:
                             prep_notes=apt_notes,
                             allow_past=False,
                         )
-                        st.success(f"Appointment '{apt_title}' scheduled for {apt_date_val}!")
+                        st.success(f"Appointment '{apt_title}' scheduled for {apt_date_val}.")
                         st.rerun()
                 except ValueError as ve:
                     st.error(f"Cannot schedule appointment: {str(ve)}")
@@ -158,7 +158,7 @@ with tab_vitals:
     vitals_data = get_vitals(patient_id, limit=30)
 
     # Top Vitals Trend Chart
-    st.subheader("📈 Longitudinal Vital Signs Trend")
+    st.subheader("Longitudinal Vital Signs Trend")
     st.caption("Cross-referenced with medication adherence to evaluate therapeutic efficacy.")
     st.plotly_chart(render_vitals_trend_chart(vitals_data), use_container_width=True)
 
@@ -207,9 +207,9 @@ with tab_vitals:
 
                 # Abnormality Callout
                 if v_sys > 140 or v_glu > 140 or v_hr > 100:
-                    st.toast("⚠️ Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.", icon="⚠️")
+                    st.toast("Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.")
                 else:
-                    st.toast("✅ Vitals safely recorded within standard clinical reference ranges.", icon="🩺")
+                    st.toast("Vitals safely recorded within standard clinical reference ranges.")
                 st.rerun()
             except ValueError as ve:
                 st.error(f"Cannot record vitals: {str(ve)}")
@@ -220,8 +220,8 @@ with tab_vitals:
             df_v = pd.DataFrame(vitals_data)
             display_cols = ["recorded_date", "recorded_time", "systolic_bp", "diastolic_bp", "blood_glucose", "heart_rate", "mood", "is_abnormal"]
             df_disp = df_v[display_cols].copy()
-            df_disp.columns = ["Date", "Time", "Sys BP", "Dia BP", "Glucose", "HR (BPM)", "Mood", "Abnormal Flag"]
-            df_disp["Abnormal Flag"] = df_disp["Abnormal Flag"].map({1: "⚠️ Yes", 0: "✅ Normal"})
+            df_disp.columns = ["Date", "Time", "Sys BP", "Dia BP", "Glucose", "HR (BPM)", "Mood", "Status"]
+            df_disp["Status"] = df_disp["Status"].map({1: "Elevated", 0: "Normal"})
             st.dataframe(df_disp, use_container_width=True, hide_index=True)
         else:
             st.info("No vitals records logged yet.")

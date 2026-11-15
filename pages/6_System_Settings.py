@@ -33,7 +33,7 @@ curr_user = get_current_user()
 
 st.markdown("""
     <div style="margin-bottom: 20px;">
-        <h1 style="color: #0F172A; margin: 0 0 6px 0;">⚙️ System Settings & Alert Dispatcher</h1>
+        <h1 style="color: #0F172A; margin: 0 0 6px 0;">System Settings & Alert Dispatcher</h1>
         <p style="color: #64748B; font-size: 16px; margin: 0;">
             Configure platform security, active SMTP credentials, notification routing, and audit logs.
         </p>
@@ -41,10 +41,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 tab_sec, tab_smtp, tab_logs, tab_maint = st.tabs([
-    "🔐 Security & Passcodes",
-    "📧 SMTP Notification Engine",
-    "📜 Complete Alert Audit Logs",
-    "🛠️ System Maintenance",
+    "Security & Passcodes",
+    "SMTP Notification Engine",
+    "Complete Alert Audit Logs",
+    "System Maintenance",
 ])
 
 # 1. Passcode Management
@@ -59,7 +59,7 @@ with tab_sec:
     c_pin1, c_pin2 = st.columns(2)
 
     with c_pin1:
-        st.markdown("#### 👴 Senior / Elderly PIN")
+        st.markdown("#### Senior / Elderly PIN")
         if elderly_user:
             st.write(f"**Current User:** {elderly_user['name']}")
             st.write(f"**Active PIN:** `{elderly_user['passcode']}`")
@@ -72,11 +72,11 @@ with tab_sec:
                     st.error("PIN must consist of at least 4 numeric digits.")
                 else:
                     update_user_passcode(elderly_user["id"], clean_pin)
-                    st.success(f"Senior PIN updated to '{clean_pin}'!")
+                    st.success(f"Senior PIN updated to '{clean_pin}'.")
                     st.rerun()
 
     with c_pin2:
-        st.markdown("#### 🩺 Caregiver PIN")
+        st.markdown("#### Caregiver PIN")
         if caretaker_user:
             st.write(f"**Current User:** {caretaker_user['name']}")
             st.write(f"**Active PIN:** `{caretaker_user['passcode']}`")
@@ -89,7 +89,7 @@ with tab_sec:
                     st.error("PIN must consist of at least 4 numeric digits.")
                 else:
                     update_user_passcode(caretaker_user["id"], clean_pin)
-                    st.success(f"Caregiver PIN updated to '{clean_pin}'!")
+                    st.success(f"Caregiver PIN updated to '{clean_pin}'.")
                     st.rerun()
 
 # 2. SMTP Alert Configuration
@@ -102,11 +102,11 @@ with tab_smtp:
     smtp_cfg = get_smtp_config()
 
     if smtp_cfg["is_configured"]:
-        st.success(f"🟢 **Live Google Mail / SMTP Active**: Connected to `{smtp_cfg['server']}:{smtp_cfg['port']}` as `{smtp_cfg['username']}`.")
+        st.success(f"**Live Google Mail / SMTP Active**: Connected to `{smtp_cfg['server']}:{smtp_cfg['port']}` as `{smtp_cfg['username']}`.")
     else:
-        st.warning("🟡 **Sandbox Audit Mode Active**: Google Mail / SMTP credentials not found in secrets or environment. Alerts are safely written to SQLite audit logs without crashing.")
+        st.warning("**Sandbox Audit Mode Active**: Google Mail / SMTP credentials not found in secrets or environment. Alerts are safely written to SQLite audit logs without crashing.")
 
-    st.markdown(f"**Integration Channel:** `{g_health['service']}` ({g_health['server']}) • **Status:** {g_health['status_label']}")
+    st.markdown(f"**Integration Channel:** `{g_health['service']}` ({g_health['server']}) &bull; **Status:** {g_health['status_label']}")
 
     st.markdown("#### Test Live Alert Dispatch")
     col_tmail, col_tbtn = st.columns([2, 1])
@@ -118,7 +118,7 @@ with tab_smtp:
         if st.button("Send Test Verification Email", use_container_width=True, type="primary"):
             test_html = f"""
                 <div style="font-family: sans-serif; padding: 24px; border: 2px solid #2563EB; border-radius: 12px; background: #F8FAFC;">
-                    <h2 style="color: #1E40AF; margin-top: 0;">🌿 GoldenCare SMTP Gateway Test</h2>
+                    <h2 style="color: #1E40AF; margin-top: 0;">GoldenCare SMTP Gateway Test</h2>
                     <p>This verification confirms that proactive alert delivery is operational.</p>
                     <p><strong>Configured Sender:</strong> {smtp_cfg['sender_name']}</p>
                     <p><strong>Target Recipient:</strong> {test_target_email}</p>
@@ -136,13 +136,13 @@ with tab_smtp:
                 patient_id=1,
             )
             if res["status"] == "SENT":
-                st.toast(f"✅ {res['message']}", icon="📧")
+                st.toast(f"{res['message']}")
             else:
-                st.toast(f"ℹ️ {res['message']}", icon="ℹ️")
+                st.toast(f"{res['message']}")
             st.rerun()
 
     st.markdown("---")
-    st.markdown("#### 💡 How to Set Live SMTP in Production")
+    st.markdown("#### How to Set Live SMTP in Production")
     st.markdown("""
         To enable direct Gmail/SMTP sending in Streamlit Community Cloud:
         1. Open your Streamlit App settings -> **Secrets**.
@@ -183,11 +183,11 @@ with tab_maint:
 
     st.markdown("#### Reset Demo State")
     st.warning("Need to restore the initial demo state with rich clinical records for judges?")
-    if st.button("🔄 Reset & Reseed Database to Fresh Demo State", type="secondary"):
+    if st.button("Reset & Reseed Database to Fresh Demo State", type="secondary"):
         with st.spinner("Reinitializing tables and inserting fresh 14-day clinical records..."):
             try:
                 reset_database()
-                st.success("Database cleanly reseeded with 14-day history, Eleanor Vance, Sarah Vance, and complete schedules!")
+                st.success("Database cleanly reseeded with 14-day history, Eleanor Vance, Sarah Vance, and complete schedules.")
                 st.rerun()
             except Exception as e:
                 st.error(f"Error resetting database: {str(e)}")

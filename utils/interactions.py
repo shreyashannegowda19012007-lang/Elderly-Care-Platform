@@ -177,5 +177,5 @@ def evaluate_interactions(
 
 def get_interaction_details(rule: Dict[str, str]) -> str:
     """Format markdown callout for an interaction."""
-    color = "🔴" if rule.get("severity") == "High" else "🟡"
-    return f"{color} **{rule.get('severity', 'Warning')} Risk**: {rule.get('description', '')}\n\n*Action:* {rule.get('recommendation', '')}"
+    indicator = "[HIGH RISK]" if rule.get("severity") == "High" else "[WARNING]"
+    return f"{indicator} **{rule.get('severity', 'Warning')} Risk**: {rule.get('description', '')}\n\n*Action:* {rule.get('recommendation', '')}"

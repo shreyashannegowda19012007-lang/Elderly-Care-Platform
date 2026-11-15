@@ -37,7 +37,7 @@ patient_name = patient["name"] if patient else "Eleanor Vance"
 
 st.markdown(f"""
     <div style="margin-bottom: 20px;">
-        <h1 style="color: #0F172A; margin: 0 0 6px 0;">🩺 Caregiver Clinical Cockpit</h1>
+        <h1 style="color: #0F172A; margin: 0 0 6px 0;">Caregiver Clinical Cockpit</h1>
         <p style="color: #64748B; font-size: 16px; margin: 0;">
             Real-time synchronization and health telemetry for <strong>{patient_name}</strong>.
         </p>
@@ -82,7 +82,7 @@ with col_kpi3:
     st.metric(
         label="Missed Doses (7 Days)",
         value=f"{stats_7d['missed_count']} Doses",
-        delta="None this week!" if stats_7d['missed_count'] == 0 else f"{stats_7d['missed_count']} Escalated",
+        delta="None this week" if stats_7d['missed_count'] == 0 else f"{stats_7d['missed_count']} Escalated",
         delta_color="inverse" if stats_7d['missed_count'] > 0 else "normal",
     )
 
@@ -100,7 +100,7 @@ st.markdown("---")
 col_left, col_right = st.columns([1.7, 1.3])
 
 with col_left:
-    st.subheader("📋 Today's Medication Execution Schedule")
+    st.subheader("Today's Medication Execution Schedule")
     st.caption("Live timeline of scheduled doses with caregiver status override capability.")
 
     if not today_doses:
@@ -116,7 +116,6 @@ with col_left:
             m_taken_at = dose.get("taken_at")
 
             status_color = "#10B981" if m_status == "TAKEN" else ("#EF4444" if m_status == "MISSED" else "#3B82F6")
-            status_icon = "✅" if m_status == "TAKEN" else ("⚠️" if m_status == "MISSED" else "⏳")
 
             with st.container():
                 st.markdown(f"""
@@ -133,7 +132,7 @@ with col_left:
                                     <span style="font-size: 14px; font-weight: 600; color: #64748B;">({m_dosage})</span>
                                 </div>
                                 <div style="color: #64748B; font-size: 13.5px; margin-top: 2px;">
-                                    ⏰ {m_tod} • Scheduled: <strong>{m_time}</strong> {f'• Taken at <strong>{str(m_taken_at)[11:16]}</strong>' if m_taken_at else ''}
+                                    {m_tod} &bull; Scheduled: <strong>{m_time}</strong> {f'&bull; Taken at <strong>{str(m_taken_at)[11:16]}</strong>' if m_taken_at else ''}
                                 </div>
                             </div>
                             <span style="
@@ -145,7 +144,7 @@ with col_left:
                                 border-radius: 9999px;
                                 font-size: 13px;
                             ">
-                                {status_icon} {m_status}
+                                {m_status}
                             </span>
                         </div>
                     </div>
@@ -156,7 +155,7 @@ with col_left:
                 with c_act1:
                     if st.button("Mark Taken", key=f"cg_take_{log_id}", use_container_width=True, disabled=(m_status == "TAKEN")):
                         mark_dose_status(log_id, "TAKEN", recorded_by="caretaker", notes="Confirmed by caregiver Sarah")
-                        st.toast(f"{m_name} marked as TAKEN.", icon="✅")
+                        st.toast(f"{m_name} marked as TAKEN.")
                         st.rerun()
                 with c_act2:
                     if st.button("Mark Missed", key=f"cg_miss_{log_id}", use_container_width=True, disabled=(m_status == "MISSED")):
@@ -168,22 +167,22 @@ with col_left:
                         st.rerun()
 
 with col_right:
-    st.subheader("⚡ Proactive Alert & Notification Center")
+    st.subheader("Proactive Alert & Notification Center")
     st.caption("Automated escalation engine checks schedules and dispatches emails.")
 
     # Live Alert Trigger and Test Dispatch Controls
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        if st.button("🔄 Check Overdue Doses", use_container_width=True, type="primary"):
+        if st.button("Check Overdue Doses", use_container_width=True, type="primary"):
             triggered = check_and_trigger_alerts(patient_id=patient_id, force_check=True)
             if triggered:
                 st.warning(f"Engine processed {len(triggered)} alerts (overdue doses/refills).")
             else:
-                st.success("All doses are on track! No overdue escalations detected.")
+                st.success("All doses are on track. No overdue escalations detected.")
             st.rerun()
 
     with col_t2:
-        if st.button("📧 Send Test Email Alert", use_container_width=True):
+        if st.button("Send Test Email Alert", use_container_width=True):
             smtp_cfg = get_smtp_config()
             target_email = smtp_cfg["alert_recipient"]
             res = send_email_alert(
@@ -191,7 +190,7 @@ with col_right:
                 subject=f"GoldenCare Test Escalation: System Operational for {patient_name}",
                 body_html=f"""
                     <div style="font-family: sans-serif; padding: 20px; border: 2px solid #2563EB; border-radius: 8px;">
-                        <h2 style="color: #1E40AF;">🌿 GoldenCare Verification Dispatch</h2>
+                        <h2 style="color: #1E40AF;">GoldenCare Verification Dispatch</h2>
                         <p>This is a certified automated test email from the GoldenCare platform.</p>
                         <p><strong>Patient Monitored:</strong> {patient_name}</p>
                         <p><strong>Current Adherence Index:</strong> {stats_7d['adherence_rate']}%</p>
@@ -203,13 +202,13 @@ with col_right:
                 patient_id=patient_id,
             )
             if res["status"] == "SENT":
-                st.toast(f"✅ Email successfully delivered to {target_email}!", icon="📧")
+                st.toast(f"Email successfully delivered to {target_email}.")
             else:
-                st.toast(f"ℹ️ {res['message']}", icon="ℹ️")
+                st.toast(f"{res['message']}")
             st.rerun()
 
     # Live Patient Vital Signs Snapshot
-    st.markdown("#### 🩺 Live Patient Biomarkers & Vitals")
+    st.markdown("#### Live Patient Biomarkers & Vitals")
     from db.database import get_vitals
     v_recent = get_vitals(patient_id, limit=1)
     if v_recent:
@@ -238,18 +237,18 @@ with col_right:
         """, unsafe_allow_html=True)
 
     # Prescription Inventory Watchlist
-    st.markdown("#### 💊 Prescription Stock & Refill Tracker")
+    st.markdown("#### Prescription Stock & Refill Tracker")
     all_meds = get_medications(patient_id, active_only=True)
     low_stock_meds = [m for m in all_meds if m["stock_remaining"] <= m["refill_threshold"]]
 
     if low_stock_meds:
         for lm in low_stock_meds:
-            st.error(f"⚠️ **Low Stock**: {lm['name']} has only **{lm['stock_remaining']} doses** left (Threshold: {lm['refill_threshold']}). Refill immediately!")
+            st.error(f"Low Stock: {lm['name']} has only {lm['stock_remaining']} doses left (Threshold: {lm['refill_threshold']}). Refill immediately.")
     else:
-        st.success("✅ All prescription inventories are adequately stocked.")
+        st.success("All prescription inventories are adequately stocked.")
 
     # Recent Audit Log Entries
-    st.markdown("#### 📜 Recent Proactive Alert Logs")
+    st.markdown("#### Recent Proactive Alert Logs")
     alerts = get_alerts(patient_id, limit=6)
     if alerts:
         log_rows = []

@@ -68,17 +68,17 @@ All underlying root-cause defects identified during adversarial stress-testing�
 ## D. Data Flow & State Verification Record
 
 ### 1. Senior Dose Confirmation -> Caretaker Synchronization
-- **Action:** Senior Eleanor clicks `"👍 I Took My Lisinopril"` on `pages/1_Elderly_Dashboard.py`.
+- **Action:** Senior Eleanor clicks `"Record Dose: I Took My Lisinopril"` on `pages/1_Elderly_Dashboard.py`.
 - **Database Write:** Calls `db.mark_dose_status(log_id, status='TAKEN', recorded_by='elderly')`.
   - Executes SQL `UPDATE adherence_logs SET status = 'TAKEN', taken_at = CURRENT_TIMESTAMP WHERE id = log_id`.
   - Executes SQL `UPDATE medications SET stock_remaining = MAX(0, stock_remaining - 1) WHERE id = med_id`.
   - Calls `invalidate_analytics_cache()` (`st.cache_data.clear()`).
   - Commits transaction via WAL mode SQLite connection.
-- **Frontend Real-time Reflection:** Senior card immediately updates to `"✅ TAKEN (08:08)"` with an `"Undo"` button.
-- **Caretaker Synchronization:** Opening or refreshing `pages/2_Caretaker_Dashboard.py` reads updated `adherence_logs` directly from SQLite; dose shows as `✅ TAKEN`, today's progress metric increments, and stock tracker reflects decremented inventory.
+- **Frontend Real-time Reflection:** Senior card immediately updates to `"TAKEN (08:08)"` with an `"Undo"` button.
+- **Caretaker Synchronization:** Opening or refreshing `pages/2_Caretaker_Dashboard.py` reads updated `adherence_logs` directly from SQLite; dose shows as `TAKEN`, today's progress metric increments, and stock tracker reflects decremented inventory.
 
 ### 2. Proactive Overdue Escalation Engine
-- **Trigger:** Evaluated automatically every 60 seconds on page navigation or manually via `"🔄 Check Overdue Doses"`.
+- **Trigger:** Evaluated automatically every 60 seconds on page navigation or manually via `"Check Overdue Doses"`.
 - **Logic:** Identifies doses with `status = 'PENDING'` whose scheduled time plus a 30-minute grace window has passed in the patient's configured timezone.
 - **Action:** Automatically updates status to `'MISSED'` in database and dispatches a critical alert email to Sarah Vance (`caretaker@example.org`) via Google Mail gateway.
 - **Deduplication:** Tracks alerted medications for the current calendar day to prevent alert spamming.
