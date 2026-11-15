@@ -22,11 +22,11 @@ from db.database import (
 from components.header import render_app_header, render_alert_banner
 from components.charts import render_vitals_trend_chart
 
-# Security Gate
-require_auth(allowed_roles=["elderly", "caretaker"])
-
 render_app_header()
 render_alert_banner()
+
+# Security Gate
+require_auth(allowed_roles=["elderly", "caretaker"])
 
 curr_user = get_current_user()
 patient_id = curr_user.get("patient_id", 1)

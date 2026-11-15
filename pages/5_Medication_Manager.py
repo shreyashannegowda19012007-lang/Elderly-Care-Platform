@@ -21,11 +21,11 @@ from db.database import (
 from components.header import render_app_header, render_alert_banner
 from utils.interactions import evaluate_interactions, get_interaction_details
 
-# Gate: Caregivers only
-require_auth(allowed_roles=["caretaker"])
-
 render_app_header()
 render_alert_banner()
+
+# Gate: Caregivers only
+require_auth(allowed_roles=["caretaker"])
 
 curr_user = get_current_user()
 patient_id = curr_user.get("patient_id", 1)

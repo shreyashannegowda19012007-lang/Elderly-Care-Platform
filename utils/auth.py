@@ -105,6 +105,9 @@ def logout_user() -> None:
 
 def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
     """Render a clean, warm, secure PIN login widget when access is restricted."""
+    from components.styles import apply_custom_styles
+    apply_custom_styles()
+
     users = get_users()
     eld_u = next((u for u in users if u["role"] == "elderly"), None)
     car_u = next((u for u in users if u["role"] == "caretaker"), None)

@@ -23,11 +23,11 @@ from db.database import (
 from components.header import render_app_header, render_alert_banner
 from utils.alerts import get_smtp_config, send_email_alert
 
-# Security Gate: Caregivers only
-require_auth(allowed_roles=["caretaker"])
-
 render_app_header()
 render_alert_banner()
+
+# Security Gate: Caregivers only
+require_auth(allowed_roles=["caretaker"])
 
 curr_user = get_current_user()
 

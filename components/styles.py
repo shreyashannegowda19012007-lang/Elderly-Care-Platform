@@ -27,32 +27,23 @@ def apply_custom_styles() -> None:
                 letter-spacing: -0.02em;
             }
 
-            /* HIDE STREAMLIT DEPLOY BUTTON, HEADER CHROME, TOOLBAR, & FOOTER */
-            header[data-testid="stHeader"] {
+            /* HIDE ALL STREAMLIT DEPLOY, HEADER, TOOLBAR, & MENU SELECTORS */
+            header, 
+            [data-testid="stHeader"], 
+            .stAppHeader, 
+            [data-testid="stToolbar"], 
+            [data-testid="stAppDeployButton"], 
+            .stDeployButton, 
+            #MainMenu, 
+            footer,
+            [data-testid="stDecoration"] {
                 display: none !important;
                 visibility: hidden !important;
-                height: 0 !important;
-            }
-
-            [data-testid="stToolbar"] {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-            }
-
-            .stDeployButton {
-                display: none !important;
-                visibility: hidden !important;
-            }
-
-            #MainMenu {
-                display: none !important;
-                visibility: hidden !important;
-            }
-
-            footer {
-                display: none !important;
-                visibility: hidden !important;
+                height: 0px !important;
+                max-height: 0px !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
             }
 
             /* Smooth Scrolling Across Whole Window */

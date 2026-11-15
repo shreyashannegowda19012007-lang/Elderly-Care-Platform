@@ -16,11 +16,11 @@ from components.elderly_ui import render_elderly_dose_card, render_elderly_sos_w
 from utils.tts import render_speech_button
 from utils.timezone_util import get_now
 
-# Security gate
-require_auth(allowed_roles=["elderly", "caretaker"])
-
 render_app_header()
 render_alert_banner()
+
+# Security gate
+require_auth(allowed_roles=["elderly", "caretaker"])
 
 curr_user = get_current_user()
 patient_id = curr_user.get("patient_id", 1)
