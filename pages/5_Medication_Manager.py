@@ -6,20 +6,21 @@ an automated real-time drug-drug interaction safety checker.
 
 from __future__ import annotations
 
-import streamlit as st
-import pandas as pd
 from datetime import time
 
-from utils.auth import require_auth, get_current_user
+import pandas as pd
+import streamlit as st
+
+from components.header import render_alert_banner, render_app_header
 from db.database import (
-    get_patient,
-    get_medications,
     add_medication,
-    update_medication,
     delete_medication,
+    get_medications,
+    get_patient,
+    update_medication,
 )
-from components.header import render_app_header, render_alert_banner
-from utils.interactions import evaluate_interactions, get_interaction_details
+from utils.auth import get_current_user, require_auth
+from utils.interactions import evaluate_interactions
 
 render_app_header()
 render_alert_banner()
@@ -171,16 +172,15 @@ with tab_add:
                     severity="CRITICAL",
                 )
             else:
-                if interactions:
-                    if med_override_ack:
-                        st.info("Physician override acknowledged for known interactions.")
-                        from db.database import add_alert
-                        add_alert(
-                            patient_id=patient_id,
-                            alert_type="CONTRAINDICATION_OVERRIDDEN",
-                            message=f"Prescription of {med_name} added under physician override despite interaction warnings.",
-                            severity="WARNING",
-                        )
+                if interactions and med_override_ack:
+                    st.info("Physician override acknowledged for known interactions.")
+                    from db.database import add_alert
+                    add_alert(
+                        patient_id=patient_id,
+                        alert_type="CONTRAINDICATION_OVERRIDDEN",
+                        message=f"Prescription of {med_name} added under physician override despite interaction warnings.",
+                        severity="WARNING",
+                    )
 
                 # Add to database
                 time_str = med_time.strftime("%H:%M")
@@ -202,7 +202,7 @@ with tab_add:
                     st.success(f"Successfully scheduled {med_name} ({med_dosage}) at {time_str}.")
                     st.rerun()
                 except ValueError as ve:
-                    st.error(f"Cannot schedule medication: {str(ve)}")
+                    st.error(f"Cannot schedule medication: {ve!s}")
 
 # 3. Drug Interaction Safety Matrix Tab
 with tab_interactions:

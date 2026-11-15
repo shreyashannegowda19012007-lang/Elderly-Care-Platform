@@ -6,32 +6,24 @@ escalation alerts, dispatches proactive emails via SMTP, and records audit logs.
 
 from __future__ import annotations
 
-import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from datetime import datetime, date, timedelta
-from typing import Dict, Any, List, Optional
-import streamlit as st
+from datetime import datetime, timedelta
+from typing import Any
 
 from db.database import (
-    get_todays_doses,
-    mark_dose_status,
     add_alert,
     get_alerts,
-    get_patient,
-    get_users,
     get_medications,
-    get_vitals,
+    get_patient,
+    get_todays_doses,
+    get_users,
+    mark_dose_status,
     reconcile_past_doses,
 )
-
-
-from utils.timezone_util import get_now, get_today_str
 from utils.google_services import send_google_mail
+from utils.timezone_util import get_now, get_today_str
 
 
-def get_smtp_config() -> Dict[str, Any]:
+def get_smtp_config() -> dict[str, Any]:
     """
     Retrieve SMTP configuration from Streamlit secrets or OS environment.
     Falls back gracefully if unconfigured.
@@ -47,8 +39,8 @@ def send_email_alert(
     alert_type: str = "NOTIFICATION",
     severity: str = "WARNING",
     patient_id: int = 1,
-    medication_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    medication_id: int | None = None,
+) -> dict[str, Any]:
     """
     Dispatch an email notification.
     If SMTP credentials are provided, transmits via live SMTP over TLS.
@@ -92,7 +84,7 @@ def send_email_alert(
         }
 
 
-def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> List[Dict[str, Any]]:
+def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> list[dict[str, Any]]:
     """
     Core proactive alert engine:
     1. Reconciles past days' pending doses to 'MISSED'.
@@ -134,7 +126,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
         try:
             sh, sm = map(int, sched_time_str.split(":"))
             scheduled_dt = datetime(now.year, now.month, now.day, sh, sm, tzinfo=now.tzinfo)
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             continue
 
         # Check for OVERDUE / MISSED (> 30 mins overdue)
@@ -199,7 +191,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
     return triggered_alerts
 
 
-def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emergency SOS button") -> Dict[str, Any]:
+def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emergency SOS button") -> dict[str, Any]:
     """Trigger immediate emergency SOS dispatch to caretaker."""
     patient = get_patient(patient_id)
     patient_name = patient["name"] if patient else "Eleanor Vance"
@@ -232,7 +224,7 @@ def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emerge
     )
 
 
-def get_alert_summary(patient_id: int = 1) -> Dict[str, Any]:
+def get_alert_summary(patient_id: int = 1) -> dict[str, Any]:
     """Return summary statistics of active alerts for UI badges."""
     alerts = get_alerts(patient_id, limit=100)
     critical_count = sum(1 for a in alerts if a["severity"] == "CRITICAL")

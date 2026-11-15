@@ -6,10 +6,10 @@ time-drift variance analysis, diurnal distribution, and vital sign trends.
 
 from __future__ import annotations
 
-import plotly.graph_objects as go
-import plotly.express as px
+from typing import Any
+
 import pandas as pd
-from typing import Dict, Any, List
+import plotly.graph_objects as go
 
 
 def render_adherence_gauge(rate: float) -> go.Figure:
@@ -40,7 +40,7 @@ def render_adherence_gauge(rate: float) -> go.Figure:
     ))
     fig.update_layout(
         height=260,
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin={"l": 20, "r": 20, "t": 40, "b": 20},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
     )
@@ -52,7 +52,7 @@ def render_daily_adherence_chart(df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
 
     if df.empty:
-        fig.add_annotation(text="No adherence records available", showarrow=False, font=dict(size=14))
+        fig.add_annotation(text="No adherence records available", showarrow=False, font={"size": 14})
         return fig
 
     # Doses Taken Bar
@@ -78,26 +78,26 @@ def render_daily_adherence_chart(df: pd.DataFrame) -> go.Figure:
         name="Adherence Rate (%)",
         mode="lines+markers",
         yaxis="y2",
-        line=dict(color="#2563EB", width=3),
-        marker=dict(size=7, color="#1D4ED8"),
+        line={"color": "#2563EB", "width": 3},
+        marker={"size": 7, "color": "#1D4ED8"},
     ))
 
     fig.update_layout(
         barmode='stack',
         height=340,
-        margin=dict(l=30, r=40, t=30, b=40),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 30, "r": 40, "t": 30, "b": 40},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(title="Date", showgrid=False),
-        yaxis=dict(title="Dose Count", showgrid=True, gridcolor="#E2E8F0"),
-        yaxis2=dict(
-            title="Adherence %",
-            overlaying="y",
-            side="right",
-            range=[0, 105],
-            showgrid=False,
-        ),
+        xaxis={"title": "Date", "showgrid": False},
+        yaxis={"title": "Dose Count", "showgrid": True, "gridcolor": "#E2E8F0"},
+        yaxis2={
+            "title": "Adherence %",
+            "overlaying": "y",
+            "side": "right",
+            "range": [0, 105],
+            "showgrid": False,
+        },
     )
     return fig
 
@@ -107,7 +107,7 @@ def render_time_drift_chart(df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
 
     if df.empty:
-        fig.add_annotation(text="No time drift data available", showarrow=False, font=dict(size=14))
+        fig.add_annotation(text="No time drift data available", showarrow=False, font={"size": 14})
         return fig
 
     # Add zero baseline
@@ -117,24 +117,24 @@ def render_time_drift_chart(df: pd.DataFrame) -> go.Figure:
         x=df["date"],
         y=df["drift_minutes"],
         mode="markers",
-        marker=dict(
-            size=10,
-            color=df["drift_minutes"],
-            colorscale="Viridis",
-            showscale=True,
-            colorbar=dict(title="Min Delay"),
-        ),
+        marker={
+            "size": 10,
+            "color": df["drift_minutes"],
+            "colorscale": "Viridis",
+            "showscale": True,
+            "colorbar": {"title": "Min Delay"},
+        },
         text=df.apply(lambda r: f"{r['medication']} ({r['time_of_day']}): {r['drift_minutes']} min delay", axis=1),
         hoverinfo="text",
     ))
 
     fig.update_layout(
         height=300,
-        margin=dict(l=30, r=30, t=30, b=30),
+        margin={"l": 30, "r": 30, "t": 30, "b": 30},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(title="Date", showgrid=False),
-        yaxis=dict(title="Time Drift (Minutes Late)", showgrid=True, gridcolor="#E2E8F0"),
+        xaxis={"title": "Date", "showgrid": False},
+        yaxis={"title": "Time Drift (Minutes Late)", "showgrid": True, "gridcolor": "#E2E8F0"},
     )
     return fig
 
@@ -144,7 +144,7 @@ def render_time_of_day_chart(df: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
 
     if df.empty:
-        fig.add_annotation(text="No time slot data available", showarrow=False, font=dict(size=14))
+        fig.add_annotation(text="No time slot data available", showarrow=False, font={"size": 14})
         return fig
 
     chart_df = df.copy()
@@ -169,21 +169,21 @@ def render_time_of_day_chart(df: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         height=260,
-        margin=dict(l=20, r=20, t=20, b=30),
+        margin={"l": 20, "r": 20, "t": 20, "b": 30},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(title="Time of Day", showgrid=False),
-        yaxis=dict(title="Adherence %", range=[0, 110], showgrid=True, gridcolor="#E2E8F0"),
+        xaxis={"title": "Time of Day", "showgrid": False},
+        yaxis={"title": "Adherence %", "range": [0, 110], "showgrid": True, "gridcolor": "#E2E8F0"},
     )
     return fig
 
 
-def render_vitals_trend_chart(vitals_list: List[Dict[str, Any]]) -> go.Figure:
+def render_vitals_trend_chart(vitals_list: list[dict[str, Any]]) -> go.Figure:
     """Generate longitudinal vital sign trends with blood pressure and glucose lines."""
     fig = go.Figure()
 
     if not vitals_list:
-        fig.add_annotation(text="No vitals logged yet", showarrow=False, font=dict(size=14))
+        fig.add_annotation(text="No vitals logged yet", showarrow=False, font={"size": 14})
         return fig
 
     df = pd.DataFrame(vitals_list).sort_values("recorded_date")
@@ -194,7 +194,7 @@ def render_vitals_trend_chart(vitals_list: List[Dict[str, Any]]) -> go.Figure:
         y=df["systolic_bp"],
         name="Systolic BP (mmHg)",
         mode="lines+markers",
-        line=dict(color="#DC2626", width=2),
+        line={"color": "#DC2626", "width": 2},
     ))
 
     # Diastolic BP
@@ -203,7 +203,7 @@ def render_vitals_trend_chart(vitals_list: List[Dict[str, Any]]) -> go.Figure:
         y=df["diastolic_bp"],
         name="Diastolic BP (mmHg)",
         mode="lines+markers",
-        line=dict(color="#EA580C", width=2),
+        line={"color": "#EA580C", "width": 2},
     ))
 
     # Blood Glucose
@@ -213,7 +213,7 @@ def render_vitals_trend_chart(vitals_list: List[Dict[str, Any]]) -> go.Figure:
         name="Blood Glucose (mg/dL)",
         mode="lines+markers",
         yaxis="y2",
-        line=dict(color="#2563EB", width=2, dash="dot"),
+        line={"color": "#2563EB", "width": 2, "dash": "dot"},
     ))
 
     # Add Normal Range Band for Systolic BP (90-140)
@@ -225,17 +225,17 @@ def render_vitals_trend_chart(vitals_list: List[Dict[str, Any]]) -> go.Figure:
 
     fig.update_layout(
         height=320,
-        margin=dict(l=30, r=40, t=30, b=30),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 30, "r": 40, "t": 30, "b": 30},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        xaxis=dict(title="Date", showgrid=False),
-        yaxis=dict(title="Blood Pressure (mmHg)", showgrid=True, gridcolor="#E2E8F0"),
-        yaxis2=dict(
-            title="Blood Glucose (mg/dL)",
-            overlaying="y",
-            side="right",
-            showgrid=False,
-        ),
+        xaxis={"title": "Date", "showgrid": False},
+        yaxis={"title": "Blood Pressure (mmHg)", "showgrid": True, "gridcolor": "#E2E8F0"},
+        yaxis2={
+            "title": "Blood Glucose (mg/dL)",
+            "overlaying": "y",
+            "side": "right",
+            "showgrid": False,
+        },
     )
     return fig

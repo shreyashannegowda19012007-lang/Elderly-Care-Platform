@@ -8,10 +8,8 @@ and DrugInteractions.
 from __future__ import annotations
 
 import sqlite3
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional, TypedDict, Union
-
+from dataclasses import asdict, dataclass
+from typing import Any, TypedDict
 
 # ==========================================
 # TypedDict Definitions for Dictionary APIs
@@ -22,12 +20,12 @@ class UserDict(TypedDict, total=False):
     role: str
     name: str
     passcode: str
-    phone: Optional[str]
-    email: Optional[str]
-    emergency_contact_name: Optional[str]
-    emergency_contact_phone: Optional[str]
-    notes: Optional[str]
-    created_at: Optional[str]
+    phone: str | None
+    email: str | None
+    emergency_contact_name: str | None
+    emergency_contact_phone: str | None
+    notes: str | None
+    created_at: str | None
 
 
 class MedicationDict(TypedDict, total=False):
@@ -40,11 +38,11 @@ class MedicationDict(TypedDict, total=False):
     scheduled_time: str
     pill_color: str
     pill_shape: str
-    instructions: Optional[str]
+    instructions: str | None
     stock_remaining: int
     refill_threshold: int
     is_active: int
-    created_at: Optional[str]
+    created_at: str | None
 
 
 class AdherenceLogDict(TypedDict, total=False):
@@ -53,11 +51,11 @@ class AdherenceLogDict(TypedDict, total=False):
     patient_id: int
     scheduled_date: str
     scheduled_time: str
-    taken_at: Optional[str]
+    taken_at: str | None
     status: str
-    notes: Optional[str]
+    notes: str | None
     recorded_by: str
-    created_at: Optional[str]
+    created_at: str | None
 
 
 class AppointmentDict(TypedDict, total=False):
@@ -69,9 +67,9 @@ class AppointmentDict(TypedDict, total=False):
     appointment_date: str
     appointment_time: str
     transport_required: int
-    prep_notes: Optional[str]
+    prep_notes: str | None
     status: str
-    created_at: Optional[str]
+    created_at: str | None
 
 
 class VitalsLogDict(TypedDict, total=False):
@@ -79,27 +77,27 @@ class VitalsLogDict(TypedDict, total=False):
     patient_id: int
     recorded_date: str
     recorded_time: str
-    systolic_bp: Optional[int]
-    diastolic_bp: Optional[int]
-    blood_glucose: Optional[float]
-    heart_rate: Optional[int]
-    weight_kg: Optional[float]
+    systolic_bp: int | None
+    diastolic_bp: int | None
+    blood_glucose: float | None
+    heart_rate: int | None
+    weight_kg: float | None
     mood: str
-    notes: Optional[str]
+    notes: str | None
     is_abnormal: int
-    created_at: Optional[str]
+    created_at: str | None
 
 
 class AlertDict(TypedDict, total=False):
     id: int
     patient_id: int
-    medication_id: Optional[int]
+    medication_id: int | None
     alert_type: str
     severity: str
     message: str
-    recipient_email: Optional[str]
+    recipient_email: str | None
     delivery_status: str
-    sent_at: Optional[str]
+    sent_at: str | None
 
 
 class DrugInteractionDict(TypedDict, total=False):
@@ -121,20 +119,20 @@ class User:
     name: str
     role: str  # 'elderly' | 'caretaker' | 'admin'
     passcode: str
-    id: Optional[int] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
-    notes: Optional[str] = None
-    created_at: Optional[str] = None
+    id: int | None = None
+    phone: str | None = None
+    email: str | None = None
+    emergency_contact_name: str | None = None
+    emergency_contact_phone: str | None = None
+    notes: str | None = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> User:
+    def from_dict(cls, data: dict[str, Any]) -> User:
         """Create a User instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -150,7 +148,7 @@ class User:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> User:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> User:
         """Create a User instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -164,21 +162,21 @@ class Medication:
     frequency: str
     time_of_day: str
     scheduled_time: str
-    id: Optional[int] = None
+    id: int | None = None
     pill_color: str = "#2563EB"
     pill_shape: str = "Tablet"
-    instructions: Optional[str] = None
+    instructions: str | None = None
     stock_remaining: int = 30
     refill_threshold: int = 5
     is_active: int = 1
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Medication:
+    def from_dict(cls, data: dict[str, Any]) -> Medication:
         """Create a Medication instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -198,7 +196,7 @@ class Medication:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> Medication:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> Medication:
         """Create a Medication instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -210,19 +208,19 @@ class AdherenceLog:
     patient_id: int
     scheduled_date: str
     scheduled_time: str
-    id: Optional[int] = None
-    taken_at: Optional[str] = None
+    id: int | None = None
+    taken_at: str | None = None
     status: str = "PENDING"  # TAKEN, MISSED, PENDING, SKIPPED
-    notes: Optional[str] = None
+    notes: str | None = None
     recorded_by: str = "elderly"
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> AdherenceLog:
+    def from_dict(cls, data: dict[str, Any]) -> AdherenceLog:
         """Create an AdherenceLog instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -238,7 +236,7 @@ class AdherenceLog:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> AdherenceLog:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> AdherenceLog:
         """Create an AdherenceLog instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -252,18 +250,18 @@ class Appointment:
     clinic_address: str
     appointment_date: str
     appointment_time: str
-    id: Optional[int] = None
+    id: int | None = None
     transport_required: int = 0
-    prep_notes: Optional[str] = None
+    prep_notes: str | None = None
     status: str = "SCHEDULED"  # SCHEDULED, COMPLETED, CANCELLED
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Appointment:
+    def from_dict(cls, data: dict[str, Any]) -> Appointment:
         """Create an Appointment instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -280,7 +278,7 @@ class Appointment:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> Appointment:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> Appointment:
         """Create an Appointment instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -291,23 +289,23 @@ class VitalsLog:
     patient_id: int
     recorded_date: str
     recorded_time: str
-    id: Optional[int] = None
-    systolic_bp: Optional[int] = None
-    diastolic_bp: Optional[int] = None
-    blood_glucose: Optional[float] = None
-    heart_rate: Optional[int] = None
-    weight_kg: Optional[float] = None
+    id: int | None = None
+    systolic_bp: int | None = None
+    diastolic_bp: int | None = None
+    blood_glucose: float | None = None
+    heart_rate: int | None = None
+    weight_kg: float | None = None
     mood: str = "Good"
-    notes: Optional[str] = None
+    notes: str | None = None
     is_abnormal: int = 0
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> VitalsLog:
+    def from_dict(cls, data: dict[str, Any]) -> VitalsLog:
         """Create a VitalsLog instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -326,7 +324,7 @@ class VitalsLog:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> VitalsLog:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> VitalsLog:
         """Create a VitalsLog instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -338,18 +336,18 @@ class Alert:
     alert_type: str
     severity: str  # INFO, WARNING, CRITICAL
     message: str
-    id: Optional[int] = None
-    medication_id: Optional[int] = None
-    recipient_email: Optional[str] = None
+    id: int | None = None
+    medication_id: int | None = None
+    recipient_email: str | None = None
     delivery_status: str = "SENT"  # SENT, LOGGED, FAILED
-    sent_at: Optional[str] = None
+    sent_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Alert:
+    def from_dict(cls, data: dict[str, Any]) -> Alert:
         """Create an Alert instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -364,7 +362,7 @@ class Alert:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> Alert:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> Alert:
         """Create an Alert instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))
 
@@ -381,14 +379,14 @@ class DrugInteraction:
     severity: str  # High, Moderate, Minor
     description: str
     recommendation: str
-    id: Optional[int] = None
+    id: int | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert dataclass instance to a standard dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> DrugInteraction:
+    def from_dict(cls, data: dict[str, Any]) -> DrugInteraction:
         """Create a DrugInteraction instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -400,6 +398,6 @@ class DrugInteraction:
         )
 
     @classmethod
-    def from_row(cls, row: Union[sqlite3.Row, Dict[str, Any]]) -> DrugInteraction:
+    def from_row(cls, row: sqlite3.Row | dict[str, Any]) -> DrugInteraction:
         """Create a DrugInteraction instance from an SQLite Row or Dict."""
         return cls.from_dict(dict(row))

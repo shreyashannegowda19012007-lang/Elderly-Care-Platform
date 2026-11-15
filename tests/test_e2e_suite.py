@@ -10,37 +10,35 @@ Tier 4: Real-World Scenarios — Full end-to-end user journeys (Senior, Caretake
 from __future__ import annotations
 
 import os
-import sqlite3
+from datetime import date, datetime, timedelta
+
 import pytest
-from datetime import datetime, date, timedelta
 import streamlit as st
 
 import db.database as db
-from utils.auth import (
-    init_session_state,
-    is_authenticated,
-    get_current_role,
-    get_current_user,
-    login_user,
-    logout_user,
-)
 from utils.alerts import (
-    get_smtp_config,
-    send_email_alert,
     check_and_trigger_alerts,
     dispatch_sos_alert,
     get_alert_summary,
-)
-from utils.interactions import (
-    evaluate_interactions,
-    get_interaction_details,
-    CLINICAL_RULES,
+    send_email_alert,
 )
 from utils.analytics import (
     compute_adherence_timeseries,
     compute_time_drift,
     compute_time_of_day_breakdown,
     generate_clinical_csv_export,
+)
+from utils.auth import (
+    get_current_role,
+    get_current_user,
+    init_session_state,
+    is_authenticated,
+    login_user,
+    logout_user,
+)
+from utils.interactions import (
+    evaluate_interactions,
+    get_interaction_details,
 )
 
 
@@ -65,7 +63,7 @@ def setup_isolated_test_env(tmp_path, monkeypatch):
     if os.path.exists(test_db_path):
         try:
             os.remove(test_db_path)
-        except Exception:
+        except OSError:
             pass
 
 
@@ -764,7 +762,7 @@ class TestTier3CrossFeatureCombinations:
         p_id = patient["id"]
 
         future_time = (datetime.now() + timedelta(hours=3)).strftime("%H:%M")
-        med_id = db.add_medication(
+        db.add_medication(
             patient_id=p_id,
             name="Critical Heart Beta Blocker",
             dosage="50mg",
@@ -943,7 +941,7 @@ class TestTier4RealWorldScenarios:
         assert target_slot["status"] == "PENDING"
 
         # 2. Autonomous proactive scheduler scans schedules
-        triggered = check_and_trigger_alerts(patient_id=p_id, force_check=True)
+        check_and_trigger_alerts(patient_id=p_id, force_check=True)
 
         # 3. Verify status automatically escalated to MISSED
         refreshed_doses = db.get_todays_doses(p_id)

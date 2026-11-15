@@ -6,25 +6,25 @@ time-drift variance, and provides exportable clinical audit reports.
 
 from __future__ import annotations
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, date
+from datetime import datetime
 
-from utils.auth import require_auth, get_current_user
-from db.database import get_patient, get_adherence_stats, get_medications, get_vitals
-from components.header import render_app_header, render_alert_banner
+import streamlit as st
+
 from components.charts import (
     render_adherence_gauge,
     render_daily_adherence_chart,
     render_time_drift_chart,
     render_time_of_day_chart,
 )
+from components.header import render_alert_banner, render_app_header
+from db.database import get_adherence_stats, get_patient
 from utils.analytics import (
     compute_adherence_timeseries,
     compute_time_drift,
     compute_time_of_day_breakdown,
     generate_clinical_csv_export,
 )
+from utils.auth import get_current_user, require_auth
 
 render_app_header()
 render_alert_banner()

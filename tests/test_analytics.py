@@ -2,8 +2,9 @@
 Unit tests for adherence analytics, timeseries computation, and clinical export.
 """
 
-import pytest
 import pandas as pd
+import pytest
+
 import db.database as db
 from utils.analytics import (
     compute_adherence_timeseries,

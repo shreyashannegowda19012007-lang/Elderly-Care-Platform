@@ -7,24 +7,26 @@ across diverse cloud environments and local timezones.
 from __future__ import annotations
 
 import os
-from datetime import datetime, date, time
-from typing import Optional, Union
 import zoneinfo
+from datetime import date, datetime
+
 import streamlit as st
 
 
-def get_app_timezone() -> Union[zoneinfo.ZoneInfo, datetime.tzinfo]:
+def get_app_timezone() -> zoneinfo.ZoneInfo | datetime.tzinfo:
     """
     Retrieve configured application timezone.
     Checks Streamlit secrets, environment variables, and falls back to local machine timezone.
     """
     tz_name = None
     try:
+        from streamlit.errors import StreamlitSecretNotFoundError
+
         if hasattr(st, "secrets") and "timezone" in st.secrets:
             tz_name = str(st.secrets["timezone"]).strip()
         elif hasattr(st, "secrets") and "app" in st.secrets and "timezone" in st.secrets["app"]:
             tz_name = str(st.secrets["app"]["timezone"]).strip()
-    except Exception:
+    except (StreamlitSecretNotFoundError, FileNotFoundError, KeyError, AttributeError, TypeError):
         pass
 
     if not tz_name:
@@ -33,7 +35,7 @@ def get_app_timezone() -> Union[zoneinfo.ZoneInfo, datetime.tzinfo]:
     if tz_name:
         try:
             return zoneinfo.ZoneInfo(tz_name)
-        except Exception:
+        except (zoneinfo.ZoneInfoNotFoundError, ValueError, OSError):
             pass
 
     # Default to system local timezone

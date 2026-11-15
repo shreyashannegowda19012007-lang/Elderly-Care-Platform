@@ -3,8 +3,10 @@ Unit and integration tests for database operations and schema integrity.
 """
 
 import os
-import pytest
 from datetime import date
+
+import pytest
+
 import db.database as db
 
 
@@ -19,7 +21,7 @@ def setup_test_db(tmp_path, monkeypatch):
     if os.path.exists(test_db_path):
         try:
             os.remove(test_db_path)
-        except Exception:
+        except OSError:
             pass
 
 
@@ -199,7 +201,14 @@ def test_reconcile_past_doses():
 def test_models_instantiation_and_serialization():
     """Verify dataclass domain models from db.models instantiate and serialize accurately."""
     from db.models import (
-        User, Medication, AdherenceLog, Appointment, VitalsLog, Alert, AlertLog, DrugInteraction
+        AdherenceLog,
+        Alert,
+        AlertLog,
+        Appointment,
+        DrugInteraction,
+        Medication,
+        User,
+        VitalsLog,
     )
 
     # User model

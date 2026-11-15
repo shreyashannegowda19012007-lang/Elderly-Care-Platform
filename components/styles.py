@@ -7,6 +7,7 @@ and completely hides the vertical sidebar for a unified horizontal web layout.
 """
 
 from __future__ import annotations
+
 import streamlit as st
 
 

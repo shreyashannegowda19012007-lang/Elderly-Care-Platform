@@ -6,14 +6,16 @@ audio readouts, and zero-confusion single-tap dose confirmation.
 
 from __future__ import annotations
 
+from typing import Any
+
 import streamlit as st
-from typing import Dict, Any
+
 from db.database import mark_dose_status
 from utils.tts import render_speech_button
 
 
 def render_elderly_dose_card(
-    dose: Dict[str, Any],
+    dose: dict[str, Any],
     high_contrast: bool = False,
     key_prefix: str = "card",
 ) -> None:
@@ -41,7 +43,7 @@ def render_elderly_dose_card(
         if display_hh == 0:
             display_hh = 12
         time_formatted = f"{display_hh}:{mm:02d} {period}"
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         time_formatted = scheduled_time
 
     # Realistic visual pill representation
@@ -160,7 +162,7 @@ def render_elderly_dose_card(
             render_speech_button(text_to_speak=speech_text, label="Listen to Audio", button_id=f"{key_prefix}_tts_{log_id}")
 
 
-def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:
+def render_elderly_sos_widget(patient: dict[str, Any]) -> None:
     """Render high-visibility Emergency Assistance card for seniors."""
     ec_name = patient.get("emergency_contact_name", "Sarah Vance")
     ec_phone = patient.get("emergency_contact_phone", "(555) 014-9921")

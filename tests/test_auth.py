@@ -4,8 +4,17 @@ Unit tests for authentication, role switching, and session logic.
 
 import pytest
 import streamlit as st
-from utils.auth import init_session_state, is_authenticated, get_current_role, get_current_user, login_user, logout_user, validate_pin
+
 import db.database as db
+from utils.auth import (
+    get_current_role,
+    get_current_user,
+    init_session_state,
+    is_authenticated,
+    login_user,
+    logout_user,
+    validate_pin,
+)
 
 
 @pytest.fixture(autouse=True)

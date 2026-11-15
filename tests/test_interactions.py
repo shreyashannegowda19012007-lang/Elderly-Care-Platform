@@ -3,8 +3,9 @@ Unit tests for pharmacological drug-drug interaction safety engine.
 """
 
 import pytest
-from utils.interactions import evaluate_interactions, get_interaction_details
+
 import db.database as db
+from utils.interactions import evaluate_interactions, get_interaction_details
 
 
 @pytest.fixture(autouse=True)

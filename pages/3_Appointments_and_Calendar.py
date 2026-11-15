@@ -6,21 +6,22 @@ longitudinal biometric tracking (blood pressure, glucose, pulse, weight).
 
 from __future__ import annotations
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, date, time
+from datetime import date, datetime, time
 
-from utils.auth import require_auth, get_current_user
-from db.database import (
-    get_patient,
-    get_appointments,
-    add_appointment,
-    update_appointment_status,
-    get_vitals,
-    add_vitals,
-)
-from components.header import render_app_header, render_alert_banner
+import pandas as pd
+import streamlit as st
+
 from components.charts import render_vitals_trend_chart
+from components.header import render_alert_banner, render_app_header
+from db.database import (
+    add_appointment,
+    add_vitals,
+    get_appointments,
+    get_patient,
+    get_vitals,
+    update_appointment_status,
+)
+from utils.auth import get_current_user, require_auth
 
 render_app_header()
 render_alert_banner()
@@ -63,7 +64,7 @@ with tab_apts:
                 apt_id = apt["id"]
                 apt_dt = datetime.strptime(apt["appointment_date"], "%Y-%m-%d").date()
                 days_away = (apt_dt - date.today()).days
-                countdown_label = "Today" if days_away == 0 else (f"Tomorrow" if days_away == 1 else f"In {days_away} days")
+                countdown_label = "Today" if days_away == 0 else ("Tomorrow" if days_away == 1 else f"In {days_away} days")
 
                 with st.container():
                     st.markdown(f"""
@@ -151,7 +152,7 @@ with tab_apts:
                         st.success(f"Appointment '{apt_title}' scheduled for {apt_date_val}.")
                         st.rerun()
                 except ValueError as ve:
-                    st.error(f"Cannot schedule appointment: {str(ve)}")
+                    st.error(f"Cannot schedule appointment: {ve!s}")
 
 # 2. Daily Health Vitals Telemetry Tab
 with tab_vitals:
@@ -212,7 +213,7 @@ with tab_vitals:
                     st.toast("Vitals safely recorded within standard clinical reference ranges.")
                 st.rerun()
             except ValueError as ve:
-                st.error(f"Cannot record vitals: {str(ve)}")
+                st.error(f"Cannot record vitals: {ve!s}")
 
     with col_v_hist:
         st.subheader("Recent Biometric Records")

@@ -6,11 +6,15 @@ and exports clinical records for healthcare providers.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pandas as pd
 import streamlit as st
-from datetime import datetime, date, timedelta
-from typing import Dict, Any, List
-from db.database import get_adherence_history, get_adherence_stats, get_medications, get_vitals
+
+from db.database import (
+    get_adherence_history,
+    get_vitals,
+)
 
 
 @st.cache_data(ttl=300)
@@ -68,7 +72,7 @@ def compute_time_drift(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
                     "taken_at": item["taken_at"],
                     "drift_minutes": drift_minutes,
                 })
-            except Exception:
+            except (ValueError, TypeError, KeyError):
                 continue
 
     return pd.DataFrame(records)
@@ -124,7 +128,7 @@ def generate_clinical_csv_export(patient_id: int = 1, days: int = 30) -> str:
                     s_dt = datetime.strptime(f"{h['scheduled_date']} {h['scheduled_time']}", "%Y-%m-%d %H:%M")
                     t_dt = datetime.strptime(str(h["taken_at"])[:19], "%Y-%m-%d %H:%M:%S")
                     drift = str(int((t_dt - s_dt).total_seconds() / 60))
-                except Exception:
+                except (ValueError, TypeError, KeyError):
                     pass
             enriched_history.append({
                 "scheduled_date": h.get("scheduled_date"),

@@ -6,15 +6,16 @@ audio readouts, and effortless one-tap dose logging.
 
 from __future__ import annotations
 
-import streamlit as st
-from datetime import datetime, date
+from datetime import datetime
 
-from utils.auth import require_auth, get_current_user
-from db.database import get_patient, get_todays_doses, get_appointments
-from components.header import render_app_header, render_alert_banner
+import streamlit as st
+
 from components.elderly_ui import render_elderly_dose_card, render_elderly_sos_widget
-from utils.tts import render_speech_button
+from components.header import render_alert_banner, render_app_header
+from db.database import get_appointments, get_patient, get_todays_doses
+from utils.auth import get_current_user, require_auth
 from utils.timezone_util import get_now
+from utils.tts import render_speech_button
 
 render_app_header()
 render_alert_banner()

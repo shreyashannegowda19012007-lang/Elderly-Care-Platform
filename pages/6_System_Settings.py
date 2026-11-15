@@ -7,21 +7,19 @@ dispatch verification test emails, and inspect complete audit logs.
 from __future__ import annotations
 
 import os
-import streamlit as st
-import pandas as pd
 
-from utils.auth import require_auth, get_current_user
+import pandas as pd
+import streamlit as st
+
+from components.header import render_alert_banner, render_app_header
 from db.database import (
+    DB_PATH,
+    get_alerts,
     get_users,
     update_user_passcode,
-    get_alerts,
-    seed_initial_data,
-    init_db,
-    reset_database,
-    DB_PATH,
 )
-from components.header import render_app_header, render_alert_banner
 from utils.alerts import get_smtp_config, send_email_alert
+from utils.auth import get_current_user, require_auth
 
 render_app_header()
 render_alert_banner()

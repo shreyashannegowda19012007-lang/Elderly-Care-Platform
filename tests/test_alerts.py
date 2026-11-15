@@ -2,16 +2,17 @@
 Unit tests for proactive alert triggers, email simulation, and escalation logic.
 """
 
+from datetime import datetime, timedelta
+
 import pytest
-import os
-from datetime import datetime, date, timedelta
+
 import db.database as db
 from utils.alerts import (
-    get_smtp_config,
-    send_email_alert,
     check_and_trigger_alerts,
     dispatch_sos_alert,
     get_alert_summary,
+    get_smtp_config,
+    send_email_alert,
 )
 
 

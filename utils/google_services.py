@@ -13,13 +13,15 @@ import ssl
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Dict, Any, Optional
+from typing import Any
+
 import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 
 from .timezone_util import get_now_timestamp_str
 
 
-def get_google_services_config() -> Dict[str, Any]:
+def get_google_services_config() -> dict[str, Any]:
     """
     Retrieve Google Services configuration from Streamlit secrets or OS environment.
     Supports Google Mail (Gmail SMTP) and Firebase / GCP service accounts.
@@ -55,13 +57,13 @@ def get_google_services_config() -> Dict[str, Any]:
                 password = s.get("password", "")
                 sender_name = s.get("sender_name", "GoldenCare Alerts")
                 alert_recipient = s.get("alert_recipient", "caretaker@example.com")
-    except Exception:
+    except (StreamlitSecretNotFoundError, FileNotFoundError, KeyError, AttributeError, ValueError, TypeError):
         pass
 
     # 2. Environment variables fallback
     if not username:
         server = os.environ.get("GOOGLE_SMTP_SERVER", os.environ.get("SMTP_SERVER", "smtp.gmail.com"))
-        port = int(os.environ.get("GOOGLE_SMTP_PORT", os.environ.get("SMTP_PORT", 587)))
+        port = int(os.environ.get("GOOGLE_SMTP_PORT", os.environ.get("SMTP_PORT", "587")))
         use_tls = os.environ.get("GOOGLE_SMTP_TLS", os.environ.get("SMTP_USE_TLS", "true")).lower() in ("true", "1", "yes")
         username = os.environ.get("GMAIL_USER", os.environ.get("SMTP_USERNAME", ""))
         password = os.environ.get("GMAIL_APP_PASSWORD", os.environ.get("SMTP_PASSWORD", ""))
@@ -93,7 +95,7 @@ def send_google_mail(
     body_html: str,
     max_retries: int = 2,
     timeout_seconds: float = 8.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Transmit an email via Google Mail (Gmail SMTP over TLS) with retry logic
     and detailed diagnostic error reporting.
@@ -136,14 +138,14 @@ def send_google_mail(
                 "attempts": attempt,
             }
         except smtplib.SMTPAuthenticationError as e:
-            last_error = f"Google Authentication Error: Check Gmail App Password ({str(e)})"
+            last_error = f"Google Authentication Error: Check Gmail App Password ({e!s})"
             break  # Do not retry bad credentials
         except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, TimeoutError, OSError) as e:
-            last_error = f"Network Timeout / Connection Error (Attempt {attempt}/{max_retries}): {str(e)}"
+            last_error = f"Network Timeout / Connection Error (Attempt {attempt}/{max_retries}): {e!s}"
             if attempt < max_retries:
                 time.sleep(0.5 * attempt)
-        except Exception as e:
-            last_error = f"Google Mail Dispatch Error: {str(e)}"
+        except (smtplib.SMTPException, RuntimeError, ValueError) as e:
+            last_error = f"Google Mail Dispatch Error: {e!s}"
             break
 
     return {
@@ -154,7 +156,7 @@ def send_google_mail(
     }
 
 
-def sync_telemetry_to_google_cloud(payload: Dict[str, Any]) -> Dict[str, Any]:
+def sync_telemetry_to_google_cloud(payload: dict[str, Any]) -> dict[str, Any]:
     """
     Hook to synchronize adherence logs and vital signs to Google Firebase or Google Cloud Firestore.
     Operates in live mode if firebase-admin credentials are present, otherwise in safe sandbox mode.
@@ -175,7 +177,7 @@ def sync_telemetry_to_google_cloud(payload: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def get_google_services_health() -> Dict[str, Any]:
+def get_google_services_health() -> dict[str, Any]:
     """Return health and connection status for the Google Services integration."""
     cfg = get_google_services_config()
     return {

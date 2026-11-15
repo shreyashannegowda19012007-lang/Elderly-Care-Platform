@@ -7,9 +7,11 @@ and UI access gates across multi-page workflows.
 from __future__ import annotations
 
 import hmac
+from typing import Any
+
 import streamlit as st
-from typing import Optional, List, Dict, Any
-from db.database import verify_user_passcode, get_patient, get_users
+
+from db.database import get_patient, get_users, verify_user_passcode
 
 
 def init_session_state() -> None:
@@ -38,13 +40,13 @@ def is_authenticated() -> bool:
     return bool(st.session_state.get("authenticated", False))
 
 
-def get_current_role() -> Optional[str]:
+def get_current_role() -> str | None:
     """Return active role: 'elderly', 'caretaker', or None if unauthenticated."""
     init_session_state()
     return st.session_state.get("user_role")
 
 
-def get_current_user() -> Dict[str, Any]:
+def get_current_user() -> dict[str, Any]:
     """Return dict of current active user session."""
     init_session_state()
     return {
@@ -68,7 +70,7 @@ def validate_pin(provided_pin: Any, expected_pin: Any) -> bool:
         return False
     try:
         return hmac.compare_digest(p.encode("utf-8"), e.encode("utf-8"))
-    except Exception:
+    except (UnicodeEncodeError, TypeError, AttributeError):
         return p == e
 
 
@@ -103,7 +105,7 @@ def logout_user() -> None:
     st.session_state["user_name"] = None
 
 
-def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
+def render_login_form(allowed_roles: list[str] | None = None) -> None:
     """Render a clean, warm, secure PIN login widget when access is restricted."""
     from components.styles import apply_custom_styles
     apply_custom_styles()
@@ -151,7 +153,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
 
     # Show only the relevant role login if allowed_roles has a single role
     if allowed_roles and len(allowed_roles) == 1 and allowed_roles[0] == "caretaker":
-        st.markdown(f"""
+        st.markdown("""
             <div class="gc-card" style="max-width: 500px; margin: 0 auto 18px auto; border: 2px solid #0284C7; background: linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 100%);">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; border: 1.5px solid #7DD3FC;">
@@ -184,13 +186,13 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                     st.success("Welcome back, Sarah!")
                     st.rerun()
                 else:
-                    st.error(f"Invalid PIN.")
+                    st.error("Invalid PIN.")
         return
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown(f"""
+        st.markdown("""
             <div class="gc-card" style="border: 2px solid #10B981; background: linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%);">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #DCFCE7; display: flex; align-items: center; justify-content: center; border: 1.5px solid #86EFAC;">
@@ -218,10 +220,10 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                     st.success("Welcome back, Eleanor!")
                     st.rerun()
                 else:
-                    st.error(f"Invalid PIN.")
+                    st.error("Invalid PIN.")
 
     with col2:
-        st.markdown(f"""
+        st.markdown("""
             <div class="gc-card" style="border: 2px solid #0284C7; background: linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 100%);">
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; border: 1.5px solid #7DD3FC;">
@@ -253,10 +255,10 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
                     st.success("Welcome back, Sarah!")
                     st.rerun()
                 else:
-                    st.error(f"Invalid PIN.")
+                    st.error("Invalid PIN.")
 
 
-def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
+def require_auth(allowed_roles: list[str] | None = None) -> bool:
     """
     Guard helper for Streamlit pages.
     Verifies authentication and role eligibility.
@@ -279,7 +281,7 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
         target_role = allowed_roles[0]
         users = get_users()
         target_u = next((u for u in users if u["role"] == target_role), None)
-        target_pin_cfg = target_u["passcode"] if target_u and target_u.get("passcode") else ("1234" if target_role == "elderly" else "8888")
+        target_u["passcode"] if target_u and target_u.get("passcode") else ("1234" if target_role == "elderly" else "8888")
 
         col_elev1, col_elev2 = st.columns(2)
         with col_elev1:

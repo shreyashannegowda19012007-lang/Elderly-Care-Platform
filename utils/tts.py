@@ -7,6 +7,7 @@ with visual or cognitive impairments using the Web Speech API.
 from __future__ import annotations
 
 import html
+
 import streamlit as st
 
 

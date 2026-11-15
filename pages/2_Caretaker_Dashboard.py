@@ -7,22 +7,23 @@ manual or proactive email alert dispatching.
 
 from __future__ import annotations
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 
-from utils.auth import require_auth, get_current_user
+import pandas as pd
+import streamlit as st
+
+from components.header import render_alert_banner, render_app_header
 from db.database import (
+    get_adherence_history,
+    get_adherence_stats,
+    get_alerts,
+    get_medications,
     get_patient,
     get_todays_doses,
     mark_dose_status,
-    get_medications,
-    get_adherence_stats,
-    get_adherence_history,
-    get_alerts,
 )
-from components.header import render_app_header, render_alert_banner
-from utils.alerts import check_and_trigger_alerts, send_email_alert, get_smtp_config
+from utils.alerts import check_and_trigger_alerts, get_smtp_config, send_email_alert
+from utils.auth import get_current_user, require_auth
 
 render_app_header()
 render_alert_banner()

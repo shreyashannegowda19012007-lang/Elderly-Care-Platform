@@ -7,12 +7,13 @@ rules to prevent adverse drug events (ADEs).
 from __future__ import annotations
 
 import re
-from typing import List, Dict, Any, Optional
+import sqlite3
+from typing import Any
+
 from db.database import get_drug_interactions
 
-
 # Core clinical interaction rules dictionary for rapid memory lookups
-CLINICAL_RULES: List[Dict[str, str]] = [
+CLINICAL_RULES: list[dict[str, str]] = [
     {
         "drug_a": "Aspirin",
         "drug_b": "Warfarin",
@@ -101,17 +102,14 @@ def _is_drug_match(med_name: str, rule_drug: str) -> bool:
     # Check if medication name is present as a whole word/phrase in rule drug
     # e.g., 'Aspirin' in 'Baby Aspirin', but NOT 'Sin' in 'Lisinopril'
     pattern_m = r'(?:\b|^)' + re.escape(m) + r'(?:\b|$)'
-    if len(m) >= 3 and re.search(pattern_m, r):
-        return True
-
-    return False
+    return bool(len(m) >= 3 and re.search(pattern_m, r))
 
 
 def evaluate_interactions(
-    medication_list: Optional[List[Any]] = None,
-    proposed_drug: Optional[str] = None,
-    current_medications: Optional[List[Any]] = None,
-) -> List[Dict[str, str]]:
+    medication_list: list[Any] | None = None,
+    proposed_drug: str | None = None,
+    current_medications: list[Any] | None = None,
+) -> list[dict[str, str]]:
     """
     Evaluate whether a list of current drugs (plus an optional newly proposed drug)
     triggers any known safety conflicts.
@@ -133,7 +131,7 @@ def evaluate_interactions(
     db_rules = []
     try:
         db_rules = get_drug_interactions()
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError, KeyError):
         pass
 
     combined_rules = CLINICAL_RULES + [
@@ -175,7 +173,7 @@ def evaluate_interactions(
     return warnings
 
 
-def get_interaction_details(rule: Dict[str, str]) -> str:
+def get_interaction_details(rule: dict[str, str]) -> str:
     """Format markdown callout for an interaction."""
     indicator = "[HIGH RISK]" if rule.get("severity") == "High" else "[WARNING]"
     return f"{indicator} **{rule.get('severity', 'Warning')} Risk**: {rule.get('description', '')}\n\n*Action:* {rule.get('recommendation', '')}"

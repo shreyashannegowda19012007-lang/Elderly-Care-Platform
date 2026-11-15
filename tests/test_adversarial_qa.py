@@ -7,38 +7,27 @@ idempotency, physiological validation, cache invalidation, and Google service fa
 from __future__ import annotations
 
 import os
-import sqlite3
+from datetime import date, timedelta
+
 import pytest
-from datetime import datetime, date, timedelta
 import streamlit as st
 
 import db.database as db
-from utils.auth import (
-    init_session_state,
-    is_authenticated,
-    get_current_role,
-    get_current_user,
-    login_user,
-    logout_user,
-    validate_pin,
-)
 from utils.alerts import (
-    get_smtp_config,
     send_email_alert,
-    check_and_trigger_alerts,
-    dispatch_sos_alert,
-    get_alert_summary,
 )
-from utils.google_services import (
-    send_google_mail,
-    get_google_services_config,
-    get_google_services_health,
-)
-from utils.interactions import evaluate_interactions
 from utils.analytics import (
     compute_adherence_timeseries,
-    compute_time_drift,
-    compute_time_of_day_breakdown,
+)
+from utils.auth import (
+    get_current_role,
+    get_current_user,
+    init_session_state,
+    is_authenticated,
+    login_user,
+)
+from utils.google_services import (
+    get_google_services_health,
 )
 
 
@@ -59,7 +48,7 @@ def setup_adversarial_env(tmp_path, monkeypatch):
     if os.path.exists(test_db_path):
         try:
             os.remove(test_db_path)
-        except Exception:
+        except OSError:
             pass
 
 
@@ -163,7 +152,7 @@ class TestAdversarialDataIntegrity:
 
         meds_before = db.get_medications(p_id)
         target_med = next(m for m in meds_before if m["id"] == med_id)
-        initial_stock = target_med["stock_remaining"]
+        target_med["stock_remaining"]
 
         # Reset to PENDING first
         db.mark_dose_status(log_id, "PENDING")

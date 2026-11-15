@@ -6,13 +6,14 @@ proactive background alert synchronization, and a smooth flowy top navigation ba
 
 from __future__ import annotations
 
-import streamlit as st
 import inspect
 from datetime import datetime
-from utils.auth import get_current_user, login_user, logout_user
-from utils.alerts import check_and_trigger_alerts, dispatch_sos_alert, get_alert_summary
-from db.database import get_patient
+
+import streamlit as st
+
 from components.styles import apply_custom_styles
+from utils.alerts import check_and_trigger_alerts, dispatch_sos_alert, get_alert_summary
+from utils.auth import get_current_user, logout_user
 
 
 def _detect_current_page() -> str:
@@ -45,7 +46,7 @@ def render_app_header() -> None:
             try:
                 check_and_trigger_alerts(patient_id=current_user.get("patient_id", 1))
                 st.session_state["last_alert_check"] = now_ts
-            except Exception:
+            except (RuntimeError, ValueError, KeyError, OSError):
                 pass
 
     col_title, col_actions = st.columns([2.3, 1.7])
@@ -173,9 +174,8 @@ def render_app_header() -> None:
         is_active = (target_name == curr_page)
         with cols[idx]:
             btn_type = "primary" if is_active else "secondary"
-            if st.button(label, key=f"flow_nav_{idx}_{target_name}", type=btn_type, width="stretch"):
-                if not is_active:
-                    st.switch_page(target_page)
+            if st.button(label, key=f"flow_nav_{idx}_{target_name}", type=btn_type, width="stretch") and not is_active:
+                st.switch_page(target_page)
 
     st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 12px 0 20px 0;'></div>", unsafe_allow_html=True)
 

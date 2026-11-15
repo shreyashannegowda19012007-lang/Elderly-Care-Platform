@@ -10,10 +10,11 @@ from __future__ import annotations
 import hmac
 import os
 import sqlite3
-import streamlit as st
 from contextlib import contextmanager
-from datetime import datetime, date, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import date, datetime, timedelta
+from typing import Any
+
+import streamlit as st
 
 # Database path resolution: supports environment variable or default relative path
 DEFAULT_DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -39,7 +40,7 @@ class DatabaseConnectionManager:
                 conn.execute("PRAGMA journal_mode=WAL;")
                 conn.execute("PRAGMA foreign_keys=ON;")
                 conn.commit()
-        except Exception:
+        except (sqlite3.Error, OSError):
             pass
 
     @contextmanager
@@ -51,15 +52,15 @@ class DatabaseConnectionManager:
             conn.execute("PRAGMA foreign_keys=ON;")
             yield conn
             conn.commit()
-        except Exception as e:
+        except Exception:
             conn.rollback()
-            raise e
+            raise
         finally:
             conn.close()
 
 
 @st.cache_resource(ttl=3600)
-def get_db_pool_manager(db_path: Optional[str] = None) -> DatabaseConnectionManager:
+def get_db_pool_manager(db_path: str | None = None) -> DatabaseConnectionManager:
     """
     Cached database resource manager using st.cache_resource.
     Ensures single-instance connection configuration and prevent memory leaks.
@@ -73,7 +74,7 @@ def invalidate_analytics_cache() -> None:
     try:
         import streamlit as st
         st.cache_data.clear()
-    except Exception:
+    except (AttributeError, RuntimeError):
         pass
 
 
@@ -82,7 +83,7 @@ def _current_today_str() -> str:
     try:
         from utils.timezone_util import get_today_str
         return get_today_str()
-    except Exception:
+    except (ImportError, AttributeError):
         return date.today().isoformat()
 
 
@@ -91,7 +92,7 @@ def _current_today_date() -> date:
     try:
         from utils.timezone_util import get_today_date
         return get_today_date()
-    except Exception:
+    except (ImportError, AttributeError):
         return date.today()
 
 
@@ -125,7 +126,7 @@ def reset_database() -> bool:
     try:
         import streamlit as st
         st.cache_resource.clear()
-    except Exception:
+    except (AttributeError, RuntimeError):
         pass
     return True
 
@@ -138,7 +139,7 @@ def ensure_db_dir() -> None:
 
 
 @contextmanager
-def get_db_connection(db_path: Optional[str] = None):
+def get_db_connection(db_path: str | None = None):
     """
     Context manager for SQLite database connections using cached pool manager.
     Enables WAL mode and foreign key constraints for robust concurrency.
@@ -442,7 +443,7 @@ def seed_initial_data() -> None:
 
 # --- User & Auth Operations ---
 
-def get_users() -> List[Dict[str, Any]]:
+def get_users() -> list[dict[str, Any]]:
     """Retrieve all users in the system."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -450,7 +451,7 @@ def get_users() -> List[Dict[str, Any]]:
         return [dict(row) for row in cursor.fetchall()]
 
 
-def get_patient(patient_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
+def get_patient(patient_id: int | None = None) -> dict[str, Any] | None:
     """Retrieve elderly patient record by ID or first available."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -462,7 +463,7 @@ def get_patient(patient_id: Optional[int] = None) -> Optional[Dict[str, Any]]:
         return dict(row) if row else None
 
 
-def verify_user_passcode(role: str, passcode: Any) -> Optional[Dict[str, Any]]:
+def verify_user_passcode(role: str, passcode: Any) -> dict[str, Any] | None:
     """Verify role and passcode combination using constant-time comparison."""
     if passcode is None or not isinstance(role, str):
         return None
@@ -479,7 +480,7 @@ def verify_user_passcode(role: str, passcode: Any) -> Optional[Dict[str, Any]]:
             try:
                 if hmac.compare_digest(provided_pin.encode("utf-8"), expected_pin.encode("utf-8")):
                     return dict(row)
-            except Exception:
+            except (UnicodeEncodeError, TypeError, AttributeError):
                 if provided_pin == expected_pin:
                     return dict(row)
         return None
@@ -500,7 +501,7 @@ def update_user_passcode(user_id: int, new_passcode: Any) -> bool:
 
 # --- Medication CRUD Operations ---
 
-def get_medications(patient_id: int, active_only: bool = True) -> List[Dict[str, Any]]:
+def get_medications(patient_id: int, active_only: bool = True) -> list[dict[str, Any]]:
     """Retrieve medications for a patient."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -631,7 +632,7 @@ def delete_medication(med_id: int) -> bool:
 
 # --- Adherence & Dose Tracking ---
 
-def get_todays_doses(patient_id: int, date_str: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_todays_doses(patient_id: int, date_str: str | None = None) -> list[dict[str, Any]]:
     """
     Retrieve all doses scheduled for a given date (defaults to today)
     with combined medication details. Ensures all active medications have
@@ -690,7 +691,7 @@ def mark_dose_status(
     log_id: int,
     status: str,
     recorded_by: str = "elderly",
-    notes: Optional[str] = None,
+    notes: str | None = None,
 ) -> bool:
     """
     Mark dose status (TAKEN, MISSED, SKIPPED, PENDING).
@@ -733,9 +734,7 @@ def mark_dose_status(
 
             invalidate_analytics_cache()
             return True
-    except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError):
-        return False
-    except Exception:
+    except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError, ValueError, KeyError):
         return False
 
 
@@ -820,9 +819,7 @@ def log_adherence(
 
             invalidate_analytics_cache()
             return True
-    except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError):
-        return False
-    except Exception:
+    except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError, ValueError, KeyError):
         return False
 
 
@@ -830,7 +827,7 @@ def log_adherence(
 record_dose_adherence = log_adherence
 
 
-def reconcile_past_doses(patient_id: Optional[int] = None) -> int:
+def reconcile_past_doses(patient_id: int | None = None) -> int:
     """
     Reconcile historical adherence records:
     Any unconfirmed 'PENDING' dose from a past calendar day (scheduled_date < today)
@@ -860,7 +857,7 @@ def reconcile_past_doses(patient_id: Optional[int] = None) -> int:
         return updated_count
 
 
-def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any]]:
+def get_adherence_history(patient_id: int, days: int = 14) -> list[dict[str, Any]]:
     """Retrieve adherence records for the past N days."""
     reconcile_past_doses(patient_id)
     today_d = _current_today_date()
@@ -889,7 +886,7 @@ def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any
         return [dict(row) for row in cursor.fetchall()]
 
 
-def get_adherence_stats(patient_id: int, days: int = 7) -> Dict[str, Any]:
+def get_adherence_stats(patient_id: int, days: int = 7) -> dict[str, Any]:
     """Calculate adherence metrics: total scheduled, taken, missed, percentage, streak."""
     reconcile_past_doses(patient_id)
     today_d = _current_today_date()
@@ -950,7 +947,7 @@ def get_adherence_stats(patient_id: int, days: int = 7) -> Dict[str, Any]:
         }
 
 
-def get_adherence_summary(patient_id: int, days: int = 7) -> Dict[str, Any]:
+def get_adherence_summary(patient_id: int, days: int = 7) -> dict[str, Any]:
     """
     Calculate comprehensive adherence summary over the specified day window.
     Returns adherence rate (percentage), streak count, total doses, taken doses,
@@ -977,7 +974,7 @@ def get_adherence_summary(patient_id: int, days: int = 7) -> Dict[str, Any]:
 
 # --- Appointments CRUD Operations ---
 
-def get_appointments(patient_id: int, status: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_appointments(patient_id: int, status: str | None = None) -> list[dict[str, Any]]:
     """Retrieve appointments for a patient."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -1021,8 +1018,8 @@ def add_appointment(
     clean_date = str(appointment_date).strip()
     try:
         parsed_d = datetime.strptime(clean_date, "%Y-%m-%d").date()
-    except Exception:
-        raise ValueError(f"Invalid appointment date format '{clean_date}'. Expected format: YYYY-MM-DD.")
+    except (ValueError, TypeError):
+        raise ValueError(f"Invalid appointment date format '{clean_date}'. Expected format: YYYY-MM-DD.") from None
 
     if not allow_past and parsed_d < date.today():
         raise ValueError(f"Appointment date '{clean_date}' cannot be scheduled in the past.")
@@ -1057,7 +1054,7 @@ def update_appointment_status(appointment_id: int, status: str) -> bool:
 
 # --- Vitals Logs Operations ---
 
-def get_vitals(patient_id: int, limit: int = 30) -> List[Dict[str, Any]]:
+def get_vitals(patient_id: int, limit: int = 30) -> list[dict[str, Any]]:
     """Retrieve vitals logged for a patient in descending date order."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -1074,11 +1071,11 @@ def add_vitals(
     patient_id: int,
     recorded_date: str,
     recorded_time: str,
-    systolic_bp: Optional[int],
-    diastolic_bp: Optional[int],
-    blood_glucose: Optional[float],
-    heart_rate: Optional[int],
-    weight_kg: Optional[float],
+    systolic_bp: int | None,
+    diastolic_bp: int | None,
+    blood_glucose: float | None,
+    heart_rate: int | None,
+    weight_kg: float | None,
     mood: str = "Good",
     notes: str = "",
 ) -> int:
@@ -1088,24 +1085,18 @@ def add_vitals(
     If abnormal, automatically registers an alert entry in alert_logs.
     Validates physiological plausibility to prevent corrupted clinical logs.
     """
-    if systolic_bp is not None:
-        if not (50 <= int(systolic_bp) <= 300):
-            raise ValueError(f"Systolic BP {systolic_bp} mmHg is outside physiologically possible range (50-300 mmHg).")
-    if diastolic_bp is not None:
-        if not (30 <= int(diastolic_bp) <= 200):
-            raise ValueError(f"Diastolic BP {diastolic_bp} mmHg is outside physiologically possible range (30-200 mmHg).")
-    if systolic_bp is not None and diastolic_bp is not None:
-        if int(systolic_bp) <= int(diastolic_bp):
-            raise ValueError(f"Systolic BP ({systolic_bp}) must be strictly higher than Diastolic BP ({diastolic_bp}).")
-    if blood_glucose is not None:
-        if not (20.0 <= float(blood_glucose) <= 600.0):
-            raise ValueError(f"Blood glucose {blood_glucose} mg/dL is outside physiologically possible range (20-600 mg/dL).")
-    if heart_rate is not None:
-        if not (30 <= int(heart_rate) <= 250):
-            raise ValueError(f"Heart rate {heart_rate} BPM is outside physiologically possible range (30-250 BPM).")
-    if weight_kg is not None:
-        if not (10.0 <= float(weight_kg) <= 400.0):
-            raise ValueError(f"Weight {weight_kg} kg is outside physiologically possible range (10-400 kg).")
+    if systolic_bp is not None and not (50 <= int(systolic_bp) <= 300):
+        raise ValueError(f"Systolic BP {systolic_bp} mmHg is outside physiologically possible range (50-300 mmHg).")
+    if diastolic_bp is not None and not (30 <= int(diastolic_bp) <= 200):
+        raise ValueError(f"Diastolic BP {diastolic_bp} mmHg is outside physiologically possible range (30-200 mmHg).")
+    if systolic_bp is not None and diastolic_bp is not None and int(systolic_bp) <= int(diastolic_bp):
+        raise ValueError(f"Systolic BP ({systolic_bp}) must be strictly higher than Diastolic BP ({diastolic_bp}).")
+    if blood_glucose is not None and not (20.0 <= float(blood_glucose) <= 600.0):
+        raise ValueError(f"Blood glucose {blood_glucose} mg/dL is outside physiologically possible range (20-600 mg/dL).")
+    if heart_rate is not None and not (30 <= int(heart_rate) <= 250):
+        raise ValueError(f"Heart rate {heart_rate} BPM is outside physiologically possible range (30-250 BPM).")
+    if weight_kg is not None and not (10.0 <= float(weight_kg) <= 400.0):
+        raise ValueError(f"Weight {weight_kg} kg is outside physiologically possible range (10-400 kg).")
 
     is_abnormal = 0
     abnormal_reasons = []
@@ -1157,7 +1148,7 @@ def add_vitals(
 
 # --- Alert System Operations ---
 
-def get_alerts(patient_id: Optional[int] = None, limit: int = 50) -> List[Dict[str, Any]]:
+def get_alerts(patient_id: int | None = None, limit: int = 50) -> list[dict[str, Any]]:
     """Retrieve logged alerts."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -1179,11 +1170,11 @@ def get_alerts(patient_id: Optional[int] = None, limit: int = 50) -> List[Dict[s
 
 def add_alert(
     patient_id: int,
-    medication_id: Optional[int] = None,
+    medication_id: int | None = None,
     alert_type: str = "NOTIFICATION",
     severity: str = "INFO",
     message: str = "",
-    recipient_email: Optional[str] = None,
+    recipient_email: str | None = None,
     delivery_status: str = "SENT",
 ) -> int:
     """
@@ -1224,7 +1215,7 @@ def add_alert(
 
 # --- Drug-Drug Interactions ---
 
-def get_drug_interactions() -> List[Dict[str, Any]]:
+def get_drug_interactions() -> list[dict[str, Any]]:
     """Retrieve full catalog of known drug-drug interactions."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -1232,7 +1223,7 @@ def get_drug_interactions() -> List[Dict[str, Any]]:
         return [dict(row) for row in cursor.fetchall()]
 
 
-def check_drug_interactions(drug_names: List[str]) -> List[Dict[str, Any]]:
+def check_drug_interactions(drug_names: list[str]) -> list[dict[str, Any]]:
     """
     Check if any pair among the provided list of drug names has an active interaction warning.
     Case-insensitive substring matching for active ingredients.
