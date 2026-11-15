@@ -153,16 +153,16 @@ with col_left:
                 # Caregiver Quick Action Buttons
                 c_act1, c_act2, c_act3 = st.columns(3)
                 with c_act1:
-                    if st.button("Mark Taken", key=f"cg_take_{log_id}", use_container_width=True, disabled=(m_status == "TAKEN")):
+                    if st.button("Mark Taken", key=f"cg_take_{log_id}", width="stretch", disabled=(m_status == "TAKEN")):
                         mark_dose_status(log_id, "TAKEN", recorded_by="caretaker", notes="Confirmed by caregiver Sarah")
                         st.toast(f"{m_name} marked as TAKEN.")
                         st.rerun()
                 with c_act2:
-                    if st.button("Mark Missed", key=f"cg_miss_{log_id}", use_container_width=True, disabled=(m_status == "MISSED")):
+                    if st.button("Mark Missed", key=f"cg_miss_{log_id}", width="stretch", disabled=(m_status == "MISSED")):
                         mark_dose_status(log_id, "MISSED", recorded_by="caretaker", notes="Manually marked missed by caregiver")
                         st.rerun()
                 with c_act3:
-                    if st.button("Reset Pending", key=f"cg_reset_{log_id}", use_container_width=True, disabled=(m_status == "PENDING")):
+                    if st.button("Reset Pending", key=f"cg_reset_{log_id}", width="stretch", disabled=(m_status == "PENDING")):
                         mark_dose_status(log_id, "PENDING", recorded_by="caretaker", notes="Schedule reset to pending")
                         st.rerun()
 
@@ -173,7 +173,7 @@ with col_right:
     # Live Alert Trigger and Test Dispatch Controls
     col_t1, col_t2 = st.columns(2)
     with col_t1:
-        if st.button("Check Overdue Doses", use_container_width=True, type="primary"):
+        if st.button("Check Overdue Doses", width="stretch", type="primary"):
             triggered = check_and_trigger_alerts(patient_id=patient_id, force_check=True)
             if triggered:
                 st.warning(f"Engine processed {len(triggered)} alerts (overdue doses/refills).")
@@ -182,7 +182,7 @@ with col_right:
             st.rerun()
 
     with col_t2:
-        if st.button("Send Test Email Alert", use_container_width=True):
+        if st.button("Send Test Email Alert", width="stretch"):
             smtp_cfg = get_smtp_config()
             target_email = smtp_cfg["alert_recipient"]
             res = send_email_alert(
@@ -260,6 +260,6 @@ with col_right:
                 "Delivery": a["delivery_status"],
                 "Message": a["message"],
             })
-        st.dataframe(pd.DataFrame(log_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(log_rows), width="stretch", hide_index=True)
     else:
         st.info("No alert logs generated yet.")

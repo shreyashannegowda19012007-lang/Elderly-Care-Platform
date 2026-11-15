@@ -160,11 +160,11 @@ with col_eld:
     """, unsafe_allow_html=True)
 
     if active_role == "elderly":
-        if st.button("Enter Senior Portal (Active Session)", use_container_width=True, type="primary"):
+        if st.button("Enter Senior Portal (Active Session)", width="stretch", type="primary"):
             st.switch_page("pages/1_Elderly_Dashboard.py")
     else:
         eld_pin = st.text_input("Senior Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {eld_pin_active})", key="home_eld_pin")
-        if st.button("Unlock & Enter Senior Portal", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
+        if st.button("Unlock & Enter Senior Portal", width="stretch", type="primary" if active_role == "elderly" else "secondary"):
             if eld_pin and login_user("elderly", eld_pin):
                 st.success("Authenticated as Eleanor Vance (Senior)!")
                 st.switch_page("pages/1_Elderly_Dashboard.py")
@@ -224,11 +224,11 @@ with col_car:
     """, unsafe_allow_html=True)
 
     if active_role == "caretaker":
-        if st.button("Enter Caregiver Cockpit (Active Session)", use_container_width=True, type="primary"):
+        if st.button("Enter Caregiver Cockpit (Active Session)", width="stretch", type="primary"):
             st.switch_page("pages/2_Caretaker_Dashboard.py")
     else:
         car_pin = st.text_input("Caregiver Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {car_pin_active})", key="home_car_pin")
-        if st.button("Unlock & Enter Caregiver Cockpit", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
+        if st.button("Unlock & Enter Caregiver Cockpit", width="stretch", type="primary" if active_role == "caretaker" else "secondary"):
             if car_pin and login_user("caretaker", car_pin):
                 st.success("Authenticated as Sarah Vance (Caregiver)!")
                 st.switch_page("pages/2_Caretaker_Dashboard.py")

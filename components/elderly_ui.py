@@ -128,7 +128,7 @@ def render_elderly_dose_card(
         with col_btn1:
             if status != "TAKEN":
                 btn_label = f"Record Dose: I Took My {name}"
-                if st.button(btn_label, key=f"{key_prefix}_take_btn_{log_id}", type="primary", use_container_width=True):
+                if st.button(btn_label, key=f"{key_prefix}_take_btn_{log_id}", type="primary", width="stretch"):
                     mark_dose_status(log_id, status="TAKEN", recorded_by="elderly", notes="Self-confirmed by patient.")
                     st.toast(f"Dose logged: Eleanor recorded {name}.")
                     st.rerun()
@@ -137,7 +137,7 @@ def render_elderly_dose_card(
                 with c_sub1:
                     st.success(f"Dose recorded at {str(taken_at)[11:16] if taken_at else 'scheduled time'}. Completed.")
                 with c_sub2:
-                    if st.button("Undo", key=f"{key_prefix}_undo_{log_id}", use_container_width=True):
+                    if st.button("Undo", key=f"{key_prefix}_undo_{log_id}", width="stretch"):
                         mark_dose_status(log_id, status="PENDING", recorded_by="elderly", notes="Undone by user.")
                         st.rerun()
 
@@ -190,7 +190,7 @@ def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:
         </div>
     """, unsafe_allow_html=True)
 
-    if st.button("DISPATCH EMERGENCY ASSISTANCE REQUEST", key="elderly_big_sos", type="primary", use_container_width=True):
+    if st.button("DISPATCH EMERGENCY ASSISTANCE REQUEST", key="elderly_big_sos", type="primary", width="stretch"):
         from utils.alerts import dispatch_sos_alert
         dispatch_sos_alert(patient_id=patient["id"], notes="Triggered from Elderly Home Dashboard")
         st.error(f"Help alert dispatched: Your caregiver {ec_name} has been notified immediately.")

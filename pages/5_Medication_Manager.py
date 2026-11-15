@@ -77,7 +77,7 @@ with tab_list:
                     st.markdown("#### Quick Actions")
                     safe_stock = max(0, min(500, int(m["stock_remaining"] or 0)))
                     new_stock = st.number_input("Update Stock", min_value=0, max_value=500, value=safe_stock, key=f"stock_edit_{m_id}")
-                    if st.button("Save Stock Count", key=f"btn_save_stock_{m_id}", use_container_width=True):
+                    if st.button("Save Stock Count", key=f"btn_save_stock_{m_id}", width="stretch"):
                         try:
                             update_medication(
                                 med_id=m_id,
@@ -97,7 +97,7 @@ with tab_list:
                         except ValueError as ve:
                             st.error(str(ve))
 
-                    if st.button("Remove Prescription", key=f"btn_del_{m_id}", use_container_width=True, type="secondary"):
+                    if st.button("Remove Prescription", key=f"btn_del_{m_id}", width="stretch", type="secondary"):
                         delete_medication(m_id)
                         st.warning(f"Prescription {m['name']} removed.")
                         st.rerun()
@@ -133,7 +133,7 @@ with tab_add:
             help="Check this box ONLY if the prescribing physician has explicitly confirmed this drug combination is clinically indicated despite known drug interactions."
         )
 
-        submit_btn = st.form_submit_button("Verify Safety & Schedule Medication", type="primary", use_container_width=True)
+        submit_btn = st.form_submit_button("Verify Safety & Schedule Medication", type="primary", width="stretch")
 
     # Real-Time Safety Analysis when form submitted or medication name entered
     if submit_btn:
@@ -239,4 +239,4 @@ with tab_interactions:
     if kb_rules:
         kb_df = pd.DataFrame(kb_rules)[["drug_a", "drug_b", "severity", "description", "recommendation"]]
         kb_df.columns = ["Primary Drug", "Secondary Drug", "Severity Level", "Clinical Adverse Effect", "Actionable Guidance"]
-        st.dataframe(kb_df, use_container_width=True, hide_index=True)
+        st.dataframe(kb_df, width="stretch", hide_index=True)

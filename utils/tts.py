@@ -7,7 +7,7 @@ with visual or cognitive impairments using the Web Speech API.
 from __future__ import annotations
 
 import html
-import streamlit.components.v1 as components
+import streamlit as st
 
 
 def render_speech_button(text_to_speak: str, label: str = "Read Out Loud", button_id: str = "tts_btn") -> None:
@@ -57,7 +57,7 @@ def render_speech_button(text_to_speak: str, label: str = "Read Out Loud", butto
         </script>
     </div>
     """
-    components.html(html_code, height=60)
+    st.iframe(html_code, height=60)
 
 
 def speak_text_script(text: str) -> str:

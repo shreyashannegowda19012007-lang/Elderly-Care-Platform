@@ -115,7 +115,7 @@ with tab_smtp:
     with col_tbtn:
         st.write("")
         st.write("")
-        if st.button("Send Test Verification Email", use_container_width=True, type="primary"):
+        if st.button("Send Test Verification Email", width="stretch", type="primary"):
             test_html = f"""
                 <div style="font-family: sans-serif; padding: 24px; border: 2px solid #2563EB; border-radius: 12px; background: #F8FAFC;">
                     <h2 style="color: #1E40AF; margin-top: 0;">GoldenCare SMTP Gateway Test</h2>
@@ -169,7 +169,7 @@ with tab_logs:
         df_alerts = pd.DataFrame(all_alerts)
         disp_alerts = df_alerts[["sent_at", "severity", "alert_type", "delivery_status", "recipient_email", "message"]].copy()
         disp_alerts.columns = ["Timestamp", "Severity", "Type", "Status", "Recipient", "Event Description"]
-        st.dataframe(disp_alerts, use_container_width=True, hide_index=True)
+        st.dataframe(disp_alerts, width="stretch", hide_index=True)
     else:
         st.info("No alert logs registered.")
 

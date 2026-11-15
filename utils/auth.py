@@ -125,7 +125,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
         st.markdown("#### Caretaker PIN Verification")
         st.caption("Clinical cockpit, analytics & scheduling")
         car_pin = st.text_input("Enter Caretaker PIN", type="password", key="login_single_car_pin", placeholder=f"Configured: {car_pin_cfg}")
-        if st.button("Unlock Caretaker Portal", key="btn_unlock_car", use_container_width=True, type="primary"):
+        if st.button("Unlock Caretaker Portal", key="btn_unlock_car", width="stretch", type="primary"):
             if login_user("caretaker", car_pin):
                 st.success("Welcome back, Sarah!")
                 st.rerun()
@@ -140,7 +140,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
         st.markdown("#### Senior / Elderly Mode")
         st.caption("Simplified large-print touch portal")
         elderly_pin = st.text_input("Enter Elderly PIN", type="password", key="login_elderly_pin", placeholder=f"Configured: {eld_pin_cfg}")
-        if st.button("Unlock Elderly Portal", key="btn_unlock_eld", use_container_width=True, type="primary"):
+        if st.button("Unlock Elderly Portal", key="btn_unlock_eld", width="stretch", type="primary"):
             if login_user("elderly", elderly_pin):
                 st.success("Welcome back, Eleanor!")
                 st.rerun()
@@ -151,7 +151,7 @@ def render_login_form(allowed_roles: Optional[List[str]] = None) -> None:
         st.markdown("#### Caretaker Mode")
         st.caption("Clinical cockpit, analytics & scheduling")
         caretaker_pin = st.text_input("Enter Caretaker PIN", type="password", key="login_caretaker_pin", placeholder=f"Configured: {car_pin_cfg}")
-        if st.button("Unlock Caretaker Portal", key="btn_unlock_car_dual", use_container_width=True):
+        if st.button("Unlock Caretaker Portal", key="btn_unlock_car_dual", width="stretch"):
             if login_user("caretaker", caretaker_pin):
                 st.success("Welcome back, Sarah!")
                 st.rerun()
@@ -193,14 +193,14 @@ def require_auth(allowed_roles: Optional[List[str]] = None) -> bool:
         
         c1, c2 = st.columns(2)
         with c1:
-            if st.button(f"Unlock as {target_role.capitalize()}", key=f"btn_elev_{target_role}", type="primary", use_container_width=True):
+            if st.button(f"Unlock as {target_role.capitalize()}", key=f"btn_elev_{target_role}", type="primary", width="stretch"):
                 if login_user(target_role, elev_pin):
                     st.success(f"Access granted as {target_role.capitalize()}!")
                     st.rerun()
                 else:
                     st.error(f"Invalid {target_role.capitalize()} PIN. (Configured: {target_pin_cfg})")
         with c2:
-            if st.button("Log Out / Change Profile", key="btn_elev_logout", use_container_width=True):
+            if st.button("Log Out / Change Profile", key="btn_elev_logout", width="stretch"):
                 logout_user()
                 st.rerun()
 

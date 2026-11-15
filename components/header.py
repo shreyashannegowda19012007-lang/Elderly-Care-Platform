@@ -106,12 +106,12 @@ def render_app_header() -> None:
 
             sc1, sc2 = st.columns(2)
             with sc1:
-                if st.button("Sign Out / Switch", key="hdr_btn_logout", use_container_width=True):
+                if st.button("Sign Out / Switch", key="hdr_btn_logout", width="stretch"):
                     logout_user()
                     st.rerun()
 
             with sc2:
-                if st.button("EMERGENCY SOS", key="hdr_sos_btn", type="primary", use_container_width=True):
+                if st.button("EMERGENCY SOS", key="hdr_sos_btn", type="primary", width="stretch"):
                     dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
                     st.toast("EMERGENCY ALERT SENT TO CAREGIVER & CLINIC")
                     st.error("Emergency Alert Dispatched! Caregiver Sarah has been notified via phone and email.")
@@ -136,10 +136,10 @@ def render_app_header() -> None:
             """, unsafe_allow_html=True)
             sc1, sc2 = st.columns(2)
             with sc1:
-                if st.button("Home / Login", key="hdr_btn_home", use_container_width=True):
+                if st.button("Home / Login", key="hdr_btn_home", width="stretch"):
                     st.switch_page("Home.py")
             with sc2:
-                if st.button("EMERGENCY SOS", key="hdr_sos_unauth", type="primary", use_container_width=True):
+                if st.button("EMERGENCY SOS", key="hdr_sos_unauth", type="primary", width="stretch"):
                     dispatch_sos_alert(patient_id=1)
                     st.toast("EMERGENCY ALERT SENT")
                     st.error("Emergency Alert Dispatched!")

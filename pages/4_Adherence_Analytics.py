@@ -60,7 +60,7 @@ df_tod = compute_time_of_day_breakdown(patient_id, days=selected_period)
 c_gauge, c_kpis = st.columns([1.2, 1.8])
 
 with c_gauge:
-    st.plotly_chart(render_adherence_gauge(stats["adherence_rate"]), use_container_width=True)
+    st.plotly_chart(render_adherence_gauge(stats["adherence_rate"]), width="stretch")
 
 with c_kpis:
     st.markdown("### Clinical Executive Summary")
@@ -96,7 +96,7 @@ st.markdown("---")
 # Longitudinal Daily Adherence Bar/Trend Chart
 st.subheader(f"Daily Dose Completion & Adherence Rate (Past {selected_period} Days)")
 st.caption("Stacked daily doses taken vs missed, overlayed with daily compliance percentage.")
-st.plotly_chart(render_daily_adherence_chart(df_ts), use_container_width=True)
+st.plotly_chart(render_daily_adherence_chart(df_ts), width="stretch")
 
 # Diurnal Compliance & Time-Drift Variance Analysis
 c_diurnal, c_drift = st.columns([1.1, 1.4])
@@ -104,12 +104,12 @@ c_diurnal, c_drift = st.columns([1.1, 1.4])
 with c_diurnal:
     st.subheader("Diurnal Compliance Rates")
     st.caption("Adherence rate by time of day slot.")
-    st.plotly_chart(render_time_of_day_chart(df_tod), use_container_width=True)
+    st.plotly_chart(render_time_of_day_chart(df_tod), width="stretch")
 
 with c_drift:
     st.subheader("Schedule Variance & Time Drift")
     st.caption("Minutes difference between scheduled time and actual confirmation.")
-    st.plotly_chart(render_time_drift_chart(df_drift), use_container_width=True)
+    st.plotly_chart(render_time_drift_chart(df_drift), width="stretch")
 
 # Exportable Clinical Provider Summary & CSV Download
 st.markdown("---")
@@ -128,8 +128,7 @@ with col_dl1:
         data=csv_data,
         file_name=filename,
         mime="text/csv",
-        type="primary",
-        use_container_width=True,
+        type="primary", width="stretch",
     )
 
 with col_dl2:

@@ -94,12 +94,12 @@ with tab_apts:
 
                     btn_c1, btn_c2 = st.columns([1, 1])
                     with btn_c1:
-                        if st.button("Mark Completed", key=f"apt_done_{apt_id}", use_container_width=True):
+                        if st.button("Mark Completed", key=f"apt_done_{apt_id}", width="stretch"):
                             update_appointment_status(apt_id, "COMPLETED")
                             st.success("Appointment completed.")
                             st.rerun()
                     with btn_c2:
-                        if st.button("Cancel Appointment", key=f"apt_cancel_{apt_id}", use_container_width=True):
+                        if st.button("Cancel Appointment", key=f"apt_cancel_{apt_id}", width="stretch"):
                             update_appointment_status(apt_id, "CANCELLED")
                             st.warning("Appointment cancelled.")
                             st.rerun()
@@ -127,7 +127,7 @@ with tab_apts:
             apt_transport = st.checkbox("Requires Caregiver Transport Coordination", value=True)
             apt_notes = st.text_area("Pre-visit Preparation & Notes", placeholder="e.g., Fasting 8 hours prior; bring blood pressure log.")
 
-            apt_submit = st.form_submit_button("Book & Synchronize Appointment", type="primary", use_container_width=True)
+            apt_submit = st.form_submit_button("Book & Synchronize Appointment", type="primary", width="stretch")
 
         if apt_submit:
             if not apt_title or not apt_doc or not apt_address:
@@ -160,7 +160,7 @@ with tab_vitals:
     # Top Vitals Trend Chart
     st.subheader("Longitudinal Vital Signs Trend")
     st.caption("Cross-referenced with medication adherence to evaluate therapeutic efficacy.")
-    st.plotly_chart(render_vitals_trend_chart(vitals_data), use_container_width=True)
+    st.plotly_chart(render_vitals_trend_chart(vitals_data), width="stretch")
 
     col_v_form, col_v_hist = st.columns([1.3, 1.7])
 
@@ -187,7 +187,7 @@ with tab_vitals:
 
             v_notes = st.text_input("Notes", placeholder="e.g., Taken before breakfast; resting state.")
 
-            v_submit = st.form_submit_button("Record Vitals", type="primary", use_container_width=True)
+            v_submit = st.form_submit_button("Record Vitals", type="primary", width="stretch")
 
         if v_submit:
             now_dt = datetime.now()
@@ -222,6 +222,6 @@ with tab_vitals:
             df_disp = df_v[display_cols].copy()
             df_disp.columns = ["Date", "Time", "Sys BP", "Dia BP", "Glucose", "HR (BPM)", "Mood", "Status"]
             df_disp["Status"] = df_disp["Status"].map({1: "Elevated", 0: "Normal"})
-            st.dataframe(df_disp, use_container_width=True, hide_index=True)
+            st.dataframe(df_disp, width="stretch", hide_index=True)
         else:
             st.info("No vitals records logged yet.")
