@@ -7,11 +7,13 @@ and exports clinical records for healthcare providers.
 from __future__ import annotations
 
 import pandas as pd
+import streamlit as st
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, List
 from db.database import get_adherence_history, get_adherence_stats, get_medications, get_vitals
 
 
+@st.cache_data(ttl=60)
 def compute_adherence_timeseries(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
     """
     Construct a daily time-series DataFrame of scheduled vs taken doses.

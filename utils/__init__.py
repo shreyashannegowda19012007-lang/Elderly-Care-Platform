@@ -7,6 +7,7 @@ from .auth import (
     login_user,
     logout_user,
     require_auth,
+    validate_pin,
 )
 from .alerts import (
     check_and_trigger_alerts,

@@ -6,7 +6,8 @@ rules to prevent adverse drug events (ADEs).
 
 from __future__ import annotations
 
-from typing import List, Dict, Any
+import re
+from typing import List, Dict, Any, Optional
 from db.database import get_drug_interactions
 
 
@@ -78,16 +79,54 @@ CLINICAL_RULES: List[Dict[str, str]] = [
 ]
 
 
-def evaluate_interactions(medication_list: List[str], proposed_drug: str = "") -> List[Dict[str, str]]:
+def _is_drug_match(med_name: str, rule_drug: str) -> bool:
+    """
+    Check if a medication name matches a clinical rule drug name.
+    Uses exact equality or word-boundary token matching to prevent
+    substring false positives (e.g., 'Sin' matching 'Lisinopril').
+    """
+    m = med_name.strip().lower()
+    r = rule_drug.strip().lower()
+    if not m or not r:
+        return False
+    if m == r:
+        return True
+
+    # Check if rule drug is present as a whole word/phrase in medication name
+    # e.g., 'Lisinopril' in 'Lisinopril 10mg' or 'Baby Aspirin' in 'Baby Aspirin 81mg'
+    pattern_r = r'(?:\b|^)' + re.escape(r) + r'(?:\b|$)'
+    if re.search(pattern_r, m):
+        return True
+
+    # Check if medication name is present as a whole word/phrase in rule drug
+    # e.g., 'Aspirin' in 'Baby Aspirin', but NOT 'Sin' in 'Lisinopril'
+    pattern_m = r'(?:\b|^)' + re.escape(m) + r'(?:\b|$)'
+    if len(m) >= 3 and re.search(pattern_m, r):
+        return True
+
+    return False
+
+
+def evaluate_interactions(
+    medication_list: Optional[List[Any]] = None,
+    proposed_drug: Optional[str] = None,
+    current_medications: Optional[List[Any]] = None,
+) -> List[Dict[str, str]]:
     """
     Evaluate whether a list of current drugs (plus an optional newly proposed drug)
     triggers any known safety conflicts.
     """
-    all_drugs = [d.strip() for d in medication_list if d.strip()]
-    if proposed_drug.strip():
-        all_drugs.append(proposed_drug.strip())
+    raw_meds = current_medications if current_medications is not None else (medication_list if medication_list is not None else [])
 
-    if len(all_drugs) < 2:
+    # Filter current_medications to remove any None or non-string/empty elements
+    meds = [str(m).strip() for m in raw_meds if m is not None and str(m).strip()]
+
+    # Handle proposed_drug: if None or empty, set to None; otherwise str(proposed_drug).strip()
+    clean_proposed = str(proposed_drug).strip() if (proposed_drug is not None and str(proposed_drug).strip()) else None
+    if clean_proposed:
+        meds.append(clean_proposed)
+
+    if len(meds) < 2:
         return []
 
     # Combine static clinical rules with any database-stored rules
@@ -111,25 +150,23 @@ def evaluate_interactions(medication_list: List[str], proposed_drug: str = "") -
     warnings = []
     seen = set()
 
-    clean_names = [d.lower() for d in all_drugs]
-
     for rule in combined_rules:
-        ra = rule["drug_a"].lower()
-        rb = rule["drug_b"].lower()
+        ra = rule["drug_a"]
+        rb = rule["drug_b"]
 
-        # Check if ra matches any drug and rb matches any OTHER drug in clean_names
-        match_a_idx = [i for i, name in enumerate(clean_names) if ra in name or name in ra]
-        match_b_idx = [i for i, name in enumerate(clean_names) if rb in name or name in rb]
+        # Check if ra matches any drug and rb matches any OTHER drug in meds
+        match_a_idx = [i for i, name in enumerate(meds) if _is_drug_match(name, ra)]
+        match_b_idx = [i for i, name in enumerate(meds) if _is_drug_match(name, rb)]
 
         for ia in match_a_idx:
             for ib in match_b_idx:
                 if ia != ib:
-                    pair_key = tuple(sorted([all_drugs[ia], all_drugs[ib]]))
+                    pair_key = tuple(sorted([meds[ia].lower(), meds[ib].lower()]))
                     if pair_key not in seen:
                         seen.add(pair_key)
                         warnings.append({
-                            "drug_1": all_drugs[ia],
-                            "drug_2": all_drugs[ib],
+                            "drug_1": meds[ia],
+                            "drug_2": meds[ib],
                             "severity": rule["severity"],
                             "description": rule["description"],
                             "recommendation": rule["recommendation"],

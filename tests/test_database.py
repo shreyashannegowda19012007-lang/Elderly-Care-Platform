@@ -298,6 +298,15 @@ def test_modular_queries_and_init_exports():
     assert hasattr(db_pkg, "get_medications")
     assert hasattr(db_pkg, "get_db_connection")
     assert hasattr(db_pkg, "init_db")
+    assert hasattr(db_pkg, "log_adherence")
+    assert hasattr(db_pkg, "record_dose_adherence")
+    assert hasattr(db_pkg, "get_adherence_summary")
+    assert hasattr(db_q, "log_adherence")
+    assert hasattr(db_q, "record_dose_adherence")
+    assert hasattr(db_q, "get_adherence_summary")
+    assert hasattr(db, "log_adherence")
+    assert hasattr(db, "record_dose_adherence")
+    assert hasattr(db, "get_adherence_summary")
     assert hasattr(db_pkg, "User")
     assert hasattr(db_pkg, "Medication")
     assert hasattr(db_pkg, "AdherenceLog")
@@ -305,4 +314,96 @@ def test_modular_queries_and_init_exports():
     assert hasattr(db_pkg, "VitalsLog")
     assert hasattr(db_pkg, "Alert")
     assert hasattr(db_pkg, "DrugInteraction")
+
+
+def test_log_adherence_contract_and_inventory():
+    """Verify log_adherence contract, stock decrement, and get_adherence_summary metrics."""
+    patient = db.get_patient()
+    p_id = patient["id"]
+    meds = db.get_medications(p_id)
+    med = meds[0]
+    med_id = med["id"]
+    initial_stock = med["stock_remaining"]
+
+    # Log a dose as TAKEN (lowercase to test case-insensitivity)
+    date_str = date.today().isoformat()
+    time_str = "12:00"
+    result = db.log_adherence(
+        medication_id=med_id,
+        date_str=date_str,
+        time_str=time_str,
+        status="taken",
+        notes="Taken with water",
+    )
+    assert result is True
+
+    # Verify inventory was decremented
+    updated_meds = db.get_medications(p_id)
+    updated_med = next(m for m in updated_meds if m["id"] == med_id)
+    assert updated_med["stock_remaining"] == initial_stock - 1
+
+    # Verify get_adherence_summary calculation
+    summary = db.get_adherence_summary(patient_id=p_id, days=7)
+    assert "adherence_rate" in summary
+    assert "streak_count" in summary
+    assert "total_doses" in summary
+    assert "taken_doses" in summary
+    assert "missed_doses" in summary
+    assert summary["total_doses"] > 0
+    assert summary["taken_doses"] >= 1
+
+    # Verify record_dose_adherence alias works identically
+    alias_res = db.record_dose_adherence(
+        medication_id=med_id,
+        date_str=date_str,
+        time_str="18:00",
+        status="SKIPPED",
+        notes="Doctor instructed skip",
+    )
+    assert alias_res is True
+
+
+def test_invalid_status_and_sqlite_integrity_resilience():
+    """Verify mark_dose_status and log_adherence catch IntegrityError cleanly and return False."""
+    patient = db.get_patient()
+    doses = db.get_todays_doses(patient["id"])
+    valid_log_id = doses[0]["log_id"]
+
+    # Invalid status strings should return False cleanly without raising IntegrityError
+    assert db.mark_dose_status(valid_log_id, "INVALID_STATUS") is False
+    assert db.mark_dose_status(valid_log_id, None) is False
+    assert db.mark_dose_status(valid_log_id, 12345) is False
+
+    # Invalid log IDs should return False
+    assert db.mark_dose_status(-1, "TAKEN") is False
+    assert db.mark_dose_status(999999, "TAKEN") is False
+
+    # Invalid log_adherence parameters should return False
+    assert db.log_adherence(medication_id=999999, date_str="2026-11-15", time_str="08:00", status="TAKEN") is False
+    assert db.log_adherence(medication_id=doses[0]["medication_id"], date_str="2026-11-15", time_str="08:00", status="INVALID") is False
+    assert db.log_adherence(medication_id=doses[0]["medication_id"], date_str="", time_str="08:00", status="TAKEN") is False
+    assert db.log_adherence(medication_id=doses[0]["medication_id"], date_str="2026-11-15", time_str="08:00", status=None) is False
+
+
+def test_auth_constant_time_passcode_verification():
+    """Verify constant-time PIN comparison and type resilience."""
+    # String and int pins
+    assert db.verify_user_passcode("elderly", "1234") is not None
+    assert db.verify_user_passcode("elderly", 1234) is not None
+    assert db.verify_user_passcode("caretaker", "8888") is not None
+    assert db.verify_user_passcode("caretaker", 8888) is not None
+
+    # Whitespace padding
+    assert db.verify_user_passcode("elderly", "  1234  ") is not None
+
+    # None and invalid inputs
+    assert db.verify_user_passcode("elderly", None) is None
+    assert db.verify_user_passcode(None, "1234") is None
+    assert db.verify_user_passcode("elderly", "") is None
+    assert db.verify_user_passcode("elderly", "   ") is None
+    assert db.verify_user_passcode("invalid_role", "1234") is None
+
+    # update_user_passcode with None
+    assert db.update_user_passcode(1, None) is False
+    assert db.update_user_passcode(1, "") is False
 

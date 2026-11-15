@@ -6,6 +6,7 @@ and UI access gates across multi-page workflows.
 
 from __future__ import annotations
 
+import hmac
 import streamlit as st
 from typing import Optional, List, Dict, Any
 from db.database import verify_user_passcode, get_patient, get_users
@@ -54,12 +55,28 @@ def get_current_user() -> Dict[str, Any]:
     }
 
 
-def login_user(role: str, passcode: str) -> bool:
+def validate_pin(provided_pin: Any, expected_pin: Any) -> bool:
+    """
+    Constant-time PIN validation using hmac.compare_digest.
+    Handles non-string and None arguments safely.
+    """
+    if provided_pin is None or expected_pin is None:
+        return False
+    p = str(provided_pin).strip()
+    e = str(expected_pin).strip()
+    if not p or not e:
+        return False
+    return hmac.compare_digest(p, e)
+
+
+def login_user(role: str, passcode: Any) -> bool:
     """
     Authenticate user against SQLite users table using passcode.
     Updates st.session_state upon successful verification.
     """
     init_session_state()
+    if passcode is None or not isinstance(role, str):
+        return False
     user = verify_user_passcode(role, passcode)
     if user:
         st.session_state["authenticated"] = True

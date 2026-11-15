@@ -4,7 +4,7 @@ Unit tests for authentication, role switching, and session logic.
 
 import pytest
 import streamlit as st
-from utils.auth import init_session_state, is_authenticated, get_current_role, get_current_user, login_user, logout_user
+from utils.auth import init_session_state, is_authenticated, get_current_role, get_current_user, login_user, logout_user, validate_pin
 import db.database as db
 
 
@@ -51,3 +51,25 @@ def test_login_and_logout():
     success_eld = login_user("elderly", "1234")
     assert success_eld is True
     assert get_current_role() == "elderly"
+
+
+def test_pin_validation_hardening():
+    """Verify constant-time PIN comparison and safe handling of edge cases."""
+    assert validate_pin("1234", "1234") is True
+    assert validate_pin(1234, "1234") is True
+    assert validate_pin(" 1234 ", "1234") is True
+    assert validate_pin("1234", "8888") is False
+    assert validate_pin(None, "1234") is False
+    assert validate_pin("1234", None) is False
+    assert validate_pin("", "") is False
+    assert validate_pin("   ", "   ") is False
+
+
+def test_login_non_string_and_none_pin():
+    """Verify login handles non-string and None inputs without crashing."""
+    assert login_user("elderly", None) is False
+    assert login_user(None, "1234") is False
+    assert login_user("elderly", 1234) is True
+    logout_user()
+    assert login_user("elderly", "") is False
+    assert login_user("elderly", "   ") is False
