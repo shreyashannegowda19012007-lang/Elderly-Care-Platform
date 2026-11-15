@@ -5,7 +5,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35%2B-FF4B4B.svg)](https://streamlit.io/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57.svg)](https://www.sqlite.org/)
-[![Tests Passing](https://img.shields.io/badge/pytest-114%2F114%20Passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/pytest-122%2F122%20Passed-brightgreen.svg)](tests/)
 [![Catalyst Hackathon](https://img.shields.io/badge/Catalyst%20Hackathon-100%25%20AI%20Certified-orange.svg)]()
 
 ---
@@ -51,13 +51,13 @@ Meanwhile, family caregivers operate in constant anxiety—unable to discern whe
 ```mermaid
 graph TD
     subgraph "Frontend Layer (Streamlit Multi-Page App)"
-        A[Home Portal & Fast Passcode Switcher]
-        B[1. Senior Accessible Touch Portal]
-        C[2. Caregiver Clinical Cockpit]
-        D[3. Prescription & Interaction Manager]
-        E[4. Clinical Appointments & Vitals]
-        F[5. Longitudinal Adherence Analytics]
-        G[6. System Settings & SMTP Gateway]
+        A[Home Portal & Fast Passcode Switcher: Home.py]
+        B[1. Senior Accessible Touch Portal: pages/1_Elderly_Dashboard.py]
+        C[2. Caregiver Clinical Cockpit: pages/2_Caretaker_Dashboard.py]
+        D[3. Clinical Appointments & Vitals: pages/3_Appointments_and_Calendar.py]
+        E[4. Longitudinal Adherence Analytics: pages/4_Adherence_Analytics.py]
+        F[5. Prescription & Interaction Manager: pages/5_Medication_Manager.py]
+        G[6. System Settings & SMTP Gateway: pages/6_System_Settings.py]
     end
 
     subgraph "Core Business Logic & Engines"
@@ -68,25 +68,31 @@ graph TD
         L[Web Speech Audio Engine: utils/tts.py]
     end
 
-    subgraph "Data & Communication Infrastructure"
-        M[(SQLite Database - WAL Concurrency)]
+    subgraph "Modular Data Layer & Infrastructure"
+        Q[Modular CRUD Queries: db/queries.py]
+        MOD[Domain Models: db/models.py]
+        M[(SQLite Database WAL: db/database.py)]
         N[SMTP Email Gateway - TLS 587]
         O[Audit Logs & Clinical CSV Dossier]
     end
 
     A --> H
     B --> L
-    B --> M
+    B --> Q
     C --> I
-    C --> M
-    D --> J
-    D --> M
-    E --> M
-    F --> K
+    C --> Q
+    D --> Q
+    E --> K
+    E --> Q
+    F --> J
+    F --> Q
     G --> N
+    G --> Q
     I --> N
-    I --> M
-    H --> M
+    I --> Q
+    H --> Q
+    Q --> MOD
+    Q --> M
 ```
 
 ---
@@ -244,7 +250,7 @@ Elderly Care Platform/
 │   ├── 5_Medication_Manager.py  # Prescription scheduling & interaction matrix
 │   └── 6_System_Settings.py     # Security PIN manager, SMTP configuration & logs
 │
-├── tests/                       # Automated Test Suite (114 Tests)
+├── tests/                       # Automated Test Suite (122 Tests)
 │   ├── __init__.py
 │   ├── test_database.py         # DB schema, CRUD, models & past-dose reconciliation
 │   ├── test_auth.py             # Passcode verification & locked-by-default security
@@ -294,7 +300,7 @@ To test real email dispatching over TLS:
 ```bash
 pytest -v
 ```
-*(All 114 tests will execute in ~6 seconds across 8 test suites: unit, database, authentication, alerts, drug interactions, analytics, AST syntax, AppTest page executions, and 4-tier E2E scenarios).*
+*(All 122 tests will execute in ~5 seconds across 8 test suites: unit, database, authentication, alerts, drug interactions, analytics, AST syntax, AppTest page executions, and 4-tier E2E scenarios).*
 
 ### 6. Launch the Application
 ```bash
@@ -305,7 +311,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 ---
 
 ## 🧪 Verification & QA Record
-- **Automated Test Coverage:** 114/114 tests passing in `~6 seconds` with 100% test isolation using temporary SQLite WAL fixtures.
+- **Automated Test Coverage:** 122/122 tests passing in `~5 seconds` with 100% test isolation using temporary SQLite WAL fixtures.
 - **Headless AppTest Lifecycle Validation:** All 7 application scripts (`Home.py` and all 6 pages) certified with 0 exceptions and 0 compilation errors.
 - **Zero Mock Fallbacks in Production:** Database auto-seeds realistic 14-day clinical history for Eleanor Vance (Lisinopril, Metformin, Atorvastatin, Calcium, Aspirin).
 - **Graceful Error Handling:** SMTP engine handles network timeouts and missing secrets with automatic audit logging fallback.
