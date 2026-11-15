@@ -123,6 +123,12 @@ with tab_add:
             placeholder="e.g., Take with food and a full glass of water. Do not crush or chew."
         )
 
+        med_override_ack = st.checkbox(
+            "⚠️ Override Clinical Contraindication Warning (Physician-Approved)",
+            value=False,
+            help="Check this box ONLY if the prescribing physician has explicitly confirmed this drug combination is clinically indicated despite known drug interactions."
+        )
+
         submit_btn = st.form_submit_button("Verify Safety & Schedule Medication", type="primary", use_container_width=True)
 
     # Real-Time Safety Analysis when form submitted or medication name entered
@@ -135,37 +141,58 @@ with tab_add:
             existing_names = [m["name"] for m in existing_meds]
             interactions = evaluate_interactions(existing_names, proposed_drug=med_name)
 
-            if interactions:
-                st.error("🚨 PHARMACOLOGICAL SAFETY WARNING DETECTED!")
-                for inter in interactions:
+            high_risk_interactions = [i for i in interactions if i.get("severity") == "High"]
+
+            if high_risk_interactions and not med_override_ack:
+                st.error("🚨 PRESCRIPTION BLOCKED: HIGH-RISK CONTRAINDICATION DETECTED!")
+                for inter in high_risk_interactions:
                     st.markdown(f"""
                         <div style="background: #FEF2F2; border-left: 6px solid #DC2626; padding: 14px; border-radius: 8px; margin-bottom: 10px;">
                             <strong style="color: #991B1B; font-size: 16px;">
-                                ⚠️ {inter['severity'].upper()} RISK: {inter['drug_1']} + {inter['drug_2']}
+                                ⚠️ HIGH RISK CONTRAINDICATION: {inter['drug_1']} + {inter['drug_2']}
                             </strong>
                             <p style="color: #7F1D1D; margin: 4px 0;">{inter['description']}</p>
                             <p style="color: #991B1B; font-weight: bold; margin: 0;">👉 Recommendation: {inter['recommendation']}</p>
                         </div>
                     """, unsafe_allow_html=True)
-                st.warning("Please consult Eleanor's primary physician before co-prescribing these agents.")
+                st.warning("⛔ Medication was NOT scheduled to protect patient safety. If physician explicitly approves, check the override box and re-submit.")
+                from db.database import add_alert
+                add_alert(
+                    patient_id=patient_id,
+                    alert_type="CONTRAINDICATION_BLOCKED",
+                    message=f"Prescription of {med_name} blocked due to high-risk interaction with existing regimen ({', '.join(i['drug_2'] for i in high_risk_interactions)}).",
+                    severity="HIGH"
+                )
+            else:
+                if interactions:
+                    if med_override_ack:
+                        st.info("ℹ️ Physician override acknowledged for known interactions.")
+                        from db.database import add_alert
+                        add_alert(
+                            patient_id=patient_id,
+                            alert_type="CONTRAINDICATION_OVERRIDDEN",
+                            message=f"Prescription of {med_name} added under physician override despite interaction warnings.",
+                            severity="MEDIUM"
+                        )
 
-            # Add to database
-            time_str = med_time.strftime("%H:%M")
-            new_id = add_medication(
-                patient_id=patient_id,
-                name=med_name,
-                dosage=med_dosage,
-                frequency=med_frequency,
-                time_of_day=med_tod,
-                scheduled_time=time_str,
-                pill_color=med_color,
-                pill_shape=med_shape,
-                instructions=med_instructions,
-                stock_remaining=med_stock,
-                refill_threshold=med_refill,
-            )
-            st.success(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!")
-            st.rerun()
+                # Add to database
+                time_str = med_time.strftime("%H:%M")
+                new_id = add_medication(
+                    patient_id=patient_id,
+                    name=med_name,
+                    dosage=med_dosage,
+                    frequency=med_frequency,
+                    time_of_day=med_tod,
+                    scheduled_time=time_str,
+                    pill_color=med_color,
+                    pill_shape=med_shape,
+                    instructions=med_instructions,
+                    stock_remaining=med_stock,
+                    refill_threshold=med_refill,
+                )
+                st.toast(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!", icon="💊")
+                st.success(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!")
+                st.rerun()
 
 # 3. Drug Interaction Safety Matrix Tab
 with tab_interactions:

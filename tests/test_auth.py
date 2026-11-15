@@ -21,11 +21,12 @@ def setup_test_auth(tmp_path, monkeypatch):
 
 
 def test_session_initialization():
-    """Verify session state defaults."""
-    assert is_authenticated() is True
-    assert get_current_role() == "elderly"
+    """Verify session state defaults to unauthenticated before PIN entry."""
+    assert is_authenticated() is False
+    assert get_current_role() is None
     user = get_current_user()
-    assert user["name"] == "Eleanor Vance"
+    assert user["role"] is None
+    assert user["name"] is None
 
 
 def test_login_and_logout():

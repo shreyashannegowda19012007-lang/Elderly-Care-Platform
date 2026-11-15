@@ -106,7 +106,7 @@ with tab_all:
         st.info("No medications are scheduled for today.")
     else:
         for dose in doses:
-            render_elderly_dose_card(dose, high_contrast=high_contrast)
+            render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="all")
 
 with tab_morn:
     morning_doses = [d for d in doses if d["time_of_day"] == "Morning"]
@@ -114,7 +114,7 @@ with tab_morn:
         st.info("No morning medications scheduled.")
     else:
         for dose in morning_doses:
-            render_elderly_dose_card(dose, high_contrast=high_contrast)
+            render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="morn")
 
 with tab_aft:
     afternoon_doses = [d for d in doses if d["time_of_day"] == "Afternoon"]
@@ -122,7 +122,7 @@ with tab_aft:
         st.info("No afternoon medications scheduled.")
     else:
         for dose in afternoon_doses:
-            render_elderly_dose_card(dose, high_contrast=high_contrast)
+            render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="aft")
 
 with tab_eve:
     evening_doses = [d for d in doses if d["time_of_day"] == "Evening"]
@@ -130,7 +130,7 @@ with tab_eve:
         st.info("No evening medications scheduled.")
     else:
         for dose in evening_doses:
-            render_elderly_dose_card(dose, high_contrast=high_contrast)
+            render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="eve")
 
 with tab_bed:
     bedtime_doses = [d for d in doses if d["time_of_day"] == "Bedtime"]
@@ -138,7 +138,7 @@ with tab_bed:
         st.info("No bedtime medications scheduled.")
     else:
         for dose in bedtime_doses:
-            render_elderly_dose_card(dose, high_contrast=high_contrast)
+            render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="bed")
 
 # Doctor Appointment Reminder Section
 st.markdown("<hr style='border: 0; border-top: 2px solid #CBD5E1; margin: 30px 0 20px 0;'/>", unsafe_allow_html=True)

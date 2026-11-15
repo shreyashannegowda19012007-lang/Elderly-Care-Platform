@@ -15,29 +15,27 @@ from db.database import get_patient
 
 def render_app_header() -> None:
     """Render top application header with user badge, quick switcher, and SOS trigger."""
+    from utils.auth import is_authenticated
+    authenticated = is_authenticated()
     current_user = get_current_user()
-    role = current_user["role"]
-    user_name = current_user["name"]
+    role = current_user.get("role")
+    user_name = current_user.get("name")
 
-    # Trigger proactive alert check (with session cache cooldown of 60 seconds)
-    now_ts = datetime.now().timestamp()
-    last_check = st.session_state.get("last_alert_check", 0)
-    if not last_check or (now_ts - last_check > 60):
-        try:
-            check_and_trigger_alerts(patient_id=current_user.get("patient_id", 1))
-            st.session_state["last_alert_check"] = now_ts
-        except Exception:
-            pass
+    # Trigger proactive alert check if authenticated
+    if authenticated:
+        now_ts = datetime.now().timestamp()
+        last_check = st.session_state.get("last_alert_check", 0)
+        if not last_check or (now_ts - last_check > 60):
+            try:
+                check_and_trigger_alerts(patient_id=current_user.get("patient_id", 1))
+                st.session_state["last_alert_check"] = now_ts
+            except Exception:
+                pass
 
-    # Custom Top Navigation Bar
-    role_badge_bg = "#10B981" if role == "elderly" else "#2563EB"
-    role_icon = "👴" if role == "elderly" else "🩺"
-    role_title = "Elderly Patient" if role == "elderly" else "Caregiver / Family"
-
-    col_title, col_actions = st.columns([2.5, 1.5])
+    col_title, col_actions = st.columns([2.3, 1.7])
 
     with col_title:
-        st.markdown(f"""
+        st.markdown("""
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <span style="font-size: 32px;">🌿</span>
                 <div>
@@ -48,38 +46,63 @@ def render_app_header() -> None:
         """, unsafe_allow_html=True)
 
     with col_actions:
-        st.markdown(f"""
-            <div style="text-align: right; margin-bottom: 6px;">
-                <span style="
-                    background: {role_badge_bg};
-                    color: white;
-                    padding: 4px 10px;
-                    border-radius: 9999px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    display: inline-block;
-                ">
-                    {role_icon} {role_title}: {user_name}
-                </span>
-            </div>
-        """, unsafe_allow_html=True)
+        if authenticated and role:
+            role_badge_bg = "#10B981" if role == "elderly" else "#2563EB"
+            role_icon = "👴" if role == "elderly" else "🩺"
+            role_title = "Elderly Patient" if role == "elderly" else "Caregiver / Family"
 
-        sc1, sc2 = st.columns(2)
-        with sc1:
-            if role == "elderly":
-                if st.button("Switch to Caregiver", key="hdr_switch_caregiver", use_container_width=True):
-                    login_user("caretaker", "8888")
-                    st.rerun()
-            else:
-                if st.button("Switch to Elderly", key="hdr_switch_elderly", use_container_width=True):
-                    login_user("elderly", "1234")
+            st.markdown(f"""
+                <div style="text-align: right; margin-bottom: 6px;">
+                    <span style="
+                        background: {role_badge_bg};
+                        color: white;
+                        padding: 4px 10px;
+                        border-radius: 9999px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        display: inline-block;
+                    ">
+                        {role_icon} {role_title}: {user_name}
+                    </span>
+                </div>
+            """, unsafe_allow_html=True)
+
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                if st.button("🚪 Log Out / Switch", key="hdr_btn_logout", use_container_width=True):
+                    logout_user()
                     st.rerun()
 
-        with sc2:
-            if st.button("🚨 Emergency SOS", key="hdr_sos_btn", type="primary", use_container_width=True):
-                res = dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
-                st.toast("🚨 EMERGENCY ALERT SENT TO CAREGIVER & CLINIC!", icon="🚨")
-                st.error("🚨 Emergency Alert Dispatched! Caregiver Sarah has been notified via phone & email.")
+            with sc2:
+                if st.button("🚨 Emergency SOS", key="hdr_sos_btn", type="primary", use_container_width=True):
+                    dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
+                    st.toast("🚨 EMERGENCY ALERT SENT TO CAREGIVER & CLINIC!", icon="🚨")
+                    st.error("🚨 Emergency Alert Dispatched! Caregiver Sarah has been notified via phone & email.")
+        else:
+            st.markdown("""
+                <div style="text-align: right; margin-bottom: 6px;">
+                    <span style="
+                        background: #64748B;
+                        color: white;
+                        padding: 4px 10px;
+                        border-radius: 9999px;
+                        font-size: 12px;
+                        font-weight: 600;
+                        display: inline-block;
+                    ">
+                        🔒 Portal Locked (PIN Required)
+                    </span>
+                </div>
+            """, unsafe_allow_html=True)
+            sc1, sc2 = st.columns(2)
+            with sc1:
+                if st.button("🏠 Home / Login", key="hdr_btn_home", use_container_width=True):
+                    st.switch_page("Home.py")
+            with sc2:
+                if st.button("🚨 Emergency SOS", key="hdr_sos_unauth", type="primary", use_container_width=True):
+                    dispatch_sos_alert(patient_id=1)
+                    st.toast("🚨 EMERGENCY ALERT SENT!", icon="🚨")
+                    st.error("🚨 Emergency Alert Dispatched!")
 
     st.markdown("<hr style='margin: 8px 0 16px 0; border: 0; border-top: 1px solid #E2E8F0;' />", unsafe_allow_html=True)
 

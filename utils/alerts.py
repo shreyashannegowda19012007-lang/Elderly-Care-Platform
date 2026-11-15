@@ -23,6 +23,7 @@ from db.database import (
     get_users,
     get_medications,
     get_vitals,
+    reconcile_past_doses,
 )
 
 
@@ -151,12 +152,16 @@ def send_email_alert(
 def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> List[Dict[str, Any]]:
     """
     Core proactive alert engine:
-    1. Scans today's medication schedule for the patient.
-    2. Identifies doses pending beyond the grace period (30 mins past scheduled time).
-    3. Escalates overdue doses to 'MISSED' status.
-    4. Automatically generates proactive email alert to caretaker.
-    5. Checks medication stock levels and triggers refill warnings.
+    1. Reconciles past days' pending doses to 'MISSED'.
+    2. Scans today's medication schedule for the patient.
+    3. Identifies doses pending beyond the grace period (30 mins past scheduled time).
+    4. Escalates overdue doses to 'MISSED' status.
+    5. Automatically generates proactive email alert to caretaker.
+    6. Checks medication stock levels and triggers refill warnings.
     """
+    # 0. Historical reconciliation of prior unconfirmed doses
+    reconcile_past_doses(patient_id)
+
     now = datetime.now()
     today_str = date.today().isoformat()
     triggered_alerts = []
@@ -171,8 +176,15 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
 
     # 1. Check Doses
     doses = get_todays_doses(patient_id, today_str)
-    existing_alerts = get_alerts(patient_id, limit=30)
-    existing_messages = {a["message"] for a in existing_alerts}
+    existing_alerts = get_alerts(patient_id, limit=100)
+    todays_sent_missed_meds = {
+        a["medication_id"] for a in existing_alerts 
+        if a["alert_type"] == "MISSED_DOSE" and str(a.get("sent_at", "")).startswith(today_str)
+    }
+    todays_sent_refill_meds = {
+        a["medication_id"] for a in existing_alerts 
+        if a["alert_type"] == "REFILL_ALERT" and str(a.get("sent_at", "")).startswith(today_str)
+    }
 
     for dose in doses:
         sched_time_str = dose["scheduled_time"]
@@ -189,7 +201,8 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
             mark_dose_status(dose["log_id"], status="MISSED", recorded_by="system", notes="Automated miss detection (>30 min grace)")
 
             alert_title = f"Missed Dose Alert: {dose['medication_name']} {dose['dosage']} ({sched_time_str})"
-            if alert_title not in existing_messages or force_check:
+            already_alerted = dose["medication_id"] in todays_sent_missed_meds
+            if not already_alerted or force_check:
                 html_body = f"""
                 <div style="font-family: sans-serif; padding: 20px; border: 2px solid #EF4444; border-radius: 8px; background: #FEF2F2;">
                     <h2 style="color: #991B1B;">⚠️ Overdue Medication Alert</h2>
@@ -210,6 +223,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
                     patient_id=patient_id,
                     medication_id=dose["medication_id"],
                 )
+                todays_sent_missed_meds.add(dose["medication_id"])
                 triggered_alerts.append({"type": "MISSED_DOSE", "medication": dose["medication_name"], "result": res})
 
     # 2. Check Inventory & Refill Needs
@@ -217,7 +231,8 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
     for m in meds:
         if m["stock_remaining"] <= m["refill_threshold"]:
             refill_title = f"Low Prescription Inventory: {m['name']} ({m['stock_remaining']} doses remaining)"
-            if refill_title not in existing_messages or force_check:
+            already_alerted = m["id"] in todays_sent_refill_meds
+            if not already_alerted or force_check:
                 html_body = f"""
                 <div style="font-family: sans-serif; padding: 20px; border: 2px solid #F59E0B; border-radius: 8px; background: #FFFBEB;">
                     <h2 style="color: #B45309;">💊 Prescription Refill Advisory</h2>
@@ -235,6 +250,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
                     patient_id=patient_id,
                     medication_id=m["id"],
                 )
+                todays_sent_refill_meds.add(m["id"])
                 triggered_alerts.append({"type": "REFILL_ALERT", "medication": m["name"], "result": res})
 
     return triggered_alerts

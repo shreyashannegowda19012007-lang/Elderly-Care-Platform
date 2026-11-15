@@ -199,9 +199,9 @@ with tab_vitals:
 
             # Abnormality Callout
             if v_sys > 140 or v_glu > 140 or v_hr > 100:
-                st.warning("⚠️ Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.")
+                st.toast("⚠️ Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.", icon="⚠️")
             else:
-                st.success("✅ Vitals safely recorded within standard clinical reference ranges.")
+                st.toast("✅ Vitals safely recorded within standard clinical reference ranges.", icon="🩺")
             st.rerun()
 
     with col_v_hist:

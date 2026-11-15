@@ -50,7 +50,12 @@ def test_time_of_day_breakdown():
 
 
 def test_csv_export_generation():
-    """Verify generation of valid CSV text."""
+    """Verify generation of valid comprehensive clinical CSV dossier with adherence and vitals."""
     csv_str = generate_clinical_csv_export(patient_id=1, days=7)
     assert isinstance(csv_str, str)
-    assert "medication_name" in csv_str or "scheduled_date" in csv_str
+    assert "medication_name" in csv_str
+    assert "scheduled_date" in csv_str
+    assert "drift_minutes" in csv_str
+    assert "systolic_bp" in csv_str
+    assert "SECTION 1: MEDICATION ADHERENCE" in csv_str
+    assert "SECTION 2: LONGITUDINAL BIOMETRIC & VITAL SIGNS" in csv_str

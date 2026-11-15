@@ -12,10 +12,15 @@ from db.database import mark_dose_status
 from utils.tts import render_speech_button
 
 
-def render_elderly_dose_card(dose: Dict[str, Any], high_contrast: bool = False) -> None:
+def render_elderly_dose_card(
+    dose: Dict[str, Any],
+    high_contrast: bool = False,
+    key_prefix: str = "card",
+) -> None:
     """
     Render a single medication dose card designed for senior accessibility.
     Large touch targets, clear status badges, and audio readout support.
+    Accepts key_prefix to guarantee unique widget element IDs across tabs.
     """
     log_id = dose["log_id"]
     status = dose["status"]
@@ -102,13 +107,13 @@ def render_elderly_dose_card(dose: Dict[str, Any], high_contrast: bool = False) 
             </div>
         """, unsafe_allow_html=True)
 
-        # Action Buttons Row
+        # Action Buttons Row with unique keys via key_prefix
         col_btn1, col_btn2 = st.columns([2.5, 1.2])
 
         with col_btn1:
             if status != "TAKEN":
                 btn_label = f"👍 I Took My {name}"
-                if st.button(btn_label, key=f"take_btn_{log_id}", type="primary", use_container_width=True):
+                if st.button(btn_label, key=f"{key_prefix}_take_btn_{log_id}", type="primary", use_container_width=True):
                     mark_dose_status(log_id, status="TAKEN", recorded_by="elderly", notes="Self-confirmed by patient.")
                     st.toast(f"Great job Eleanor! You took your {name}.", icon="🌟")
                     st.rerun()
@@ -117,13 +122,13 @@ def render_elderly_dose_card(dose: Dict[str, Any], high_contrast: bool = False) 
                 with c_sub1:
                     st.success(f"Dose recorded at {str(taken_at)[11:16] if taken_at else 'scheduled time'}. Well done!")
                 with c_sub2:
-                    if st.button("Undo", key=f"undo_{log_id}", use_container_width=True):
+                    if st.button("Undo", key=f"{key_prefix}_undo_{log_id}", use_container_width=True):
                         mark_dose_status(log_id, status="PENDING", recorded_by="elderly", notes="Undone by user.")
                         st.rerun()
 
         with col_btn2:
             speech_text = f"Time for {name}, {dosage}. Scheduled for {time_of_day} at {time_formatted}. Instructions: {instructions}"
-            render_speech_button(text_to_speak=speech_text, label="🔊 Read to Me", button_id=f"tts_{log_id}")
+            render_speech_button(text_to_speak=speech_text, label="🔊 Read to Me", button_id=f"{key_prefix}_tts_{log_id}")
 
 
 def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:

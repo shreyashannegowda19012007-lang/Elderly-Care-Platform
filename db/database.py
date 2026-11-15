@@ -574,8 +574,36 @@ def mark_dose_status(
         return True
 
 
+def reconcile_past_doses(patient_id: Optional[int] = None) -> int:
+    """
+    Reconcile historical adherence records:
+    Any unconfirmed 'PENDING' dose from a past calendar day (scheduled_date < today)
+    is automatically transitioned to 'MISSED' status.
+    Returns the count of updated doses.
+    """
+    today_str = date.today().isoformat()
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        if patient_id:
+            cursor.execute("""
+                UPDATE adherence_logs
+                SET status = 'MISSED',
+                    notes = 'Auto-escalation: past unconfirmed dose'
+                WHERE patient_id = ? AND scheduled_date < ? AND status = 'PENDING';
+            """, (patient_id, today_str))
+        else:
+            cursor.execute("""
+                UPDATE adherence_logs
+                SET status = 'MISSED',
+                    notes = 'Auto-escalation: past unconfirmed dose'
+                WHERE scheduled_date < ? AND status = 'PENDING';
+            """, (today_str,))
+        return cursor.rowcount
+
+
 def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any]]:
     """Retrieve adherence records for the past N days."""
+    reconcile_past_doses(patient_id)
     start_date = (date.today() - timedelta(days=days)).isoformat()
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -586,11 +614,13 @@ def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any
                 l.scheduled_time,
                 l.taken_at,
                 l.status,
+                l.notes as log_notes,
                 l.recorded_by,
                 m.id as medication_id,
                 m.name as medication_name,
                 m.dosage,
-                m.time_of_day
+                m.time_of_day,
+                m.stock_remaining
             FROM adherence_logs l
             JOIN medications m ON l.medication_id = m.id
             WHERE l.patient_id = ? AND l.scheduled_date >= ?
@@ -601,6 +631,7 @@ def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any
 
 def get_adherence_stats(patient_id: int, days: int = 7) -> Dict[str, Any]:
     """Calculate adherence metrics: total scheduled, taken, missed, percentage, streak."""
+    reconcile_past_doses(patient_id)
     start_date = (date.today() - timedelta(days=days)).isoformat()
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -742,16 +773,23 @@ def add_vitals(
     """
     Log a set of vital signs and flag if abnormal.
     Abnormal criteria: Systolic > 140 or < 90, Diastolic > 90, Glucose > 140 or < 70, Pulse > 100 or < 55.
+    If abnormal, automatically registers an alert entry in alert_logs.
     """
     is_abnormal = 0
+    abnormal_reasons = []
+
     if systolic_bp and (systolic_bp > 140 or systolic_bp < 90):
         is_abnormal = 1
+        abnormal_reasons.append(f"Systolic BP {systolic_bp} mmHg")
     if diastolic_bp and (diastolic_bp > 90 or diastolic_bp < 60):
         is_abnormal = 1
+        abnormal_reasons.append(f"Diastolic BP {diastolic_bp} mmHg")
     if blood_glucose and (blood_glucose > 140.0 or blood_glucose < 70.0):
         is_abnormal = 1
+        abnormal_reasons.append(f"Blood Glucose {blood_glucose} mg/dL")
     if heart_rate and (heart_rate > 100 or heart_rate < 55):
         is_abnormal = 1
+        abnormal_reasons.append(f"Heart Rate {heart_rate} BPM")
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -764,7 +802,24 @@ def add_vitals(
             patient_id, recorded_date, recorded_time, systolic_bp, diastolic_bp,
             blood_glucose, heart_rate, weight_kg, mood, notes.strip(), is_abnormal
         ))
-        return cursor.lastrowid
+        vitals_id = cursor.lastrowid
+
+        # Register alert if readings breach physiological safety thresholds
+        if is_abnormal:
+            reasons_str = ", ".join(abnormal_reasons)
+            alert_msg = f"Abnormal Vitals Logged: {reasons_str} at {recorded_time}."
+            cursor.execute("SELECT email FROM users WHERE role = 'caretaker' LIMIT 1;")
+            c_row = cursor.fetchone()
+            c_email = c_row["email"] if c_row and c_row["email"] else "caretaker@example.org"
+
+            cursor.execute("""
+                INSERT INTO alert_logs (
+                    patient_id, medication_id, alert_type, severity,
+                    message, recipient_email, delivery_status
+                ) VALUES (?, NULL, 'ABNORMAL_VITALS', 'WARNING', ?, ?, 'LOGGED');
+            """, (patient_id, alert_msg, c_email))
+
+        return vitals_id
 
 
 # --- Alert System Operations ---

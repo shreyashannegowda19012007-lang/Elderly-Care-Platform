@@ -92,11 +92,73 @@ def compute_time_of_day_breakdown(patient_id: int = 1, days: int = 14) -> pd.Dat
 
 def generate_clinical_csv_export(patient_id: int = 1, days: int = 30) -> str:
     """
-    Generate an exportable CSV dataset combining adherence and vitals records
-    suitable for sharing with physicians.
+    Generate an exportable comprehensive CSV dossier combining medication adherence
+    records, schedule time-drift, and vital sign telemetry for clinical review.
     """
     history = get_adherence_history(patient_id, days=days)
-    df = pd.DataFrame(history)
-    if df.empty:
-        return "No data recorded."
-    return df.to_csv(index=False)
+    vitals = get_vitals(patient_id, limit=100)
+
+    lines = [
+        "# ========================================================",
+        "# GOLDENCARE CLINICAL ADHERENCE & VITALS DOSSIER",
+        f"# Export Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"# Patient ID: {patient_id} | Reporting Window: Past {days} Days",
+        "# ========================================================",
+        "",
+        "--- SECTION 1: MEDICATION ADHERENCE & TIME-DRIFT TELEMETRY ---",
+    ]
+
+    if history:
+        enriched_history = []
+        for h in history:
+            drift = ""
+            if h.get("status") == "TAKEN" and h.get("taken_at") and h.get("scheduled_time"):
+                try:
+                    s_dt = datetime.strptime(f"{h['scheduled_date']} {h['scheduled_time']}", "%Y-%m-%d %H:%M")
+                    t_dt = datetime.strptime(str(h["taken_at"])[:19], "%Y-%m-%d %H:%M:%S")
+                    drift = str(int((t_dt - s_dt).total_seconds() / 60))
+                except Exception:
+                    pass
+            enriched_history.append({
+                "scheduled_date": h.get("scheduled_date"),
+                "scheduled_time": h.get("scheduled_time"),
+                "time_of_day": h.get("time_of_day"),
+                "medication_name": h.get("medication_name"),
+                "dosage": h.get("dosage"),
+                "status": h.get("status"),
+                "taken_at": h.get("taken_at") or "N/A",
+                "drift_minutes": drift or "0",
+                "recorded_by": h.get("recorded_by", "patient"),
+                "log_notes": h.get("log_notes", ""),
+            })
+        df_hist = pd.DataFrame(enriched_history)
+        lines.append(df_hist.to_csv(index=False).strip())
+    else:
+        lines.append("No medication adherence records found for this period.")
+
+    lines.extend([
+        "",
+        "--- SECTION 2: LONGITUDINAL BIOMETRIC & VITAL SIGNS TELEMETRY ---",
+    ])
+
+    if vitals:
+        vitals_formatted = []
+        for v in vitals:
+            vitals_formatted.append({
+                "recorded_date": v.get("recorded_date"),
+                "recorded_time": v.get("recorded_time"),
+                "systolic_bp": v.get("systolic_bp"),
+                "diastolic_bp": v.get("diastolic_bp"),
+                "blood_glucose": v.get("blood_glucose"),
+                "heart_rate": v.get("heart_rate"),
+                "weight_kg": v.get("weight_kg"),
+                "mood": v.get("mood"),
+                "is_abnormal": "YES" if v.get("is_abnormal") == 1 else "NO",
+                "notes": v.get("notes", ""),
+            })
+        df_vit = pd.DataFrame(vitals_formatted)
+        lines.append(df_vit.to_csv(index=False).strip())
+    else:
+        lines.append("No vital sign records found for this period.")
+
+    return "\n".join(lines)

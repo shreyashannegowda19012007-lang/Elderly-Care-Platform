@@ -163,3 +163,146 @@ def test_appointments_and_vitals():
     vitals_list2 = db.get_vitals(p_id)
     abn_entry = next((v for v in vitals_list2 if v["id"] == v_abn), None)
     assert abn_entry["is_abnormal"] == 1
+
+    # Verify abnormal vitals logged to alert center
+    alerts = db.get_alerts(p_id)
+    v_alert = next((a for a in alerts if a["alert_type"] == "ABNORMAL_VITALS"), None)
+    assert v_alert is not None
+    assert "Systolic BP 165" in v_alert["message"]
+
+
+def test_reconcile_past_doses():
+    """Verify unconfirmed past doses are transitioned to MISSED status."""
+    from datetime import timedelta
+    patient = db.get_patient()
+    p_id = patient["id"]
+    meds = db.get_medications(p_id)
+    m_id = meds[0]["id"]
+
+    past_date = (date.today() - timedelta(days=2)).isoformat()
+    with db.get_db_connection() as conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO adherence_logs (
+                medication_id, patient_id, scheduled_date, scheduled_time, status, notes, recorded_by
+            ) VALUES (?, ?, ?, '10:00', 'PENDING', 'Old unconfirmed', 'system');
+        """, (m_id, p_id, past_date))
+
+    count = db.reconcile_past_doses(p_id)
+    assert count >= 1
+
+    history = db.get_adherence_history(p_id, days=5)
+    old_dose = next((h for h in history if h["scheduled_date"] == past_date and h["medication_id"] == m_id and h["scheduled_time"] == "10:00"), None)
+    assert old_dose is not None
+    assert old_dose["status"] == "MISSED"
+
+
+def test_models_instantiation_and_serialization():
+    """Verify dataclass domain models from db.models instantiate and serialize accurately."""
+    from db.models import (
+        User, Medication, AdherenceLog, Appointment, VitalsLog, Alert, AlertLog, DrugInteraction
+    )
+
+    # User model
+    u = User(name="Test User", role="elderly", passcode="1234", phone="555-0100")
+    u_dict = u.to_dict()
+    assert u_dict["name"] == "Test User"
+    assert u_dict["role"] == "elderly"
+    u_recreated = User.from_dict(u_dict)
+    assert u_recreated.name == u.name
+
+    # Medication model
+    m = Medication(
+        patient_id=1,
+        name="Lisinopril",
+        dosage="10mg",
+        frequency="Daily",
+        time_of_day="Morning",
+        scheduled_time="08:00",
+        stock_remaining=30,
+    )
+    m_dict = m.to_dict()
+    assert m_dict["name"] == "Lisinopril"
+    m_recreated = Medication.from_dict(m_dict)
+    assert m_recreated.dosage == "10mg"
+
+    # AdherenceLog model
+    a = AdherenceLog(
+        medication_id=1,
+        patient_id=1,
+        scheduled_date="2026-11-15",
+        scheduled_time="08:00",
+        status="TAKEN",
+    )
+    assert a.to_dict()["status"] == "TAKEN"
+    assert AdherenceLog.from_dict(a.to_dict()).status == "TAKEN"
+
+    # Appointment model
+    apt = Appointment(
+        patient_id=1,
+        title="Cardiology Visit",
+        doctor_name="Dr. Chen",
+        clinic_address="100 Metro Way",
+        appointment_date="2026-11-20",
+        appointment_time="10:00",
+    )
+    assert apt.to_dict()["doctor_name"] == "Dr. Chen"
+    assert Appointment.from_dict(apt.to_dict()).clinic_address == "100 Metro Way"
+
+    # VitalsLog model
+    v = VitalsLog(
+        patient_id=1,
+        recorded_date="2026-11-15",
+        recorded_time="09:00",
+        systolic_bp=120,
+        diastolic_bp=80,
+    )
+    assert v.to_dict()["systolic_bp"] == 120
+    assert VitalsLog.from_dict(v.to_dict()).diastolic_bp == 80
+
+    # Alert / AlertLog model
+    alt = Alert(
+        patient_id=1,
+        alert_type="MISSED_DOSE",
+        severity="WARNING",
+        message="Missed scheduled dose",
+    )
+    assert alt.to_dict()["severity"] == "WARNING"
+    assert AlertLog == Alert
+
+    # DrugInteraction model
+    di = DrugInteraction(
+        drug_a="Aspirin",
+        drug_b="Warfarin",
+        severity="High",
+        description="Bleeding risk",
+        recommendation="Monitor INR",
+    )
+    assert di.to_dict()["severity"] == "High"
+    assert DrugInteraction.from_dict(di.to_dict()).drug_b == "Warfarin"
+
+
+def test_modular_queries_and_init_exports():
+    """Verify db package __init__.py cleanly re-exports all models and queries for full backward compatibility."""
+    import db as db_pkg
+    import db.queries as db_q
+
+    # Verify query functions exist in db.queries
+    assert callable(db_q.get_patient)
+    assert callable(db_q.get_medications)
+    assert callable(db_q.get_adherence_stats)
+    assert callable(db_q.reconcile_past_doses)
+    assert callable(db_q.add_vitals)
+
+    # Verify query functions and models are re-exported by db root
+    assert hasattr(db_pkg, "get_patient")
+    assert hasattr(db_pkg, "get_medications")
+    assert hasattr(db_pkg, "get_db_connection")
+    assert hasattr(db_pkg, "init_db")
+    assert hasattr(db_pkg, "User")
+    assert hasattr(db_pkg, "Medication")
+    assert hasattr(db_pkg, "AdherenceLog")
+    assert hasattr(db_pkg, "Appointment")
+    assert hasattr(db_pkg, "VitalsLog")
+    assert hasattr(db_pkg, "Alert")
+    assert hasattr(db_pkg, "DrugInteraction")
+

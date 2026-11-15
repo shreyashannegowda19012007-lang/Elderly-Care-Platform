@@ -61,10 +61,21 @@ st.markdown("""
 
 # Authentication & Fast Role Switcher Section
 st.subheader("🔐 Secure Passcode Authentication & Role Switcher")
-st.caption("Select your profile to access specialized, tailored interfaces.")
+st.caption("Select your profile and enter your 4-digit security PIN to access specialized interfaces.")
 
 curr_user = get_current_user()
-active_role = curr_user["role"]
+active_role = curr_user.get("role")
+
+if active_role:
+    st.markdown(f"""
+        <div style="background: #F0FDF4; border: 2px solid #10B981; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <strong style="color: #065F46; font-size: 16px;">🟢 Currently Authenticated:</strong> 
+                <span style="color: #047857; font-size: 16px;">{curr_user.get('name')} ({active_role.capitalize()})</span>
+            </div>
+            <span style="font-size: 13px; color: #065F46;">Switch roles below or click Log Out in the top navigation.</span>
+        </div>
+    """, unsafe_allow_html=True)
 
 col_eld, col_car = st.columns(2)
 
@@ -93,7 +104,7 @@ with col_eld:
     if st.button("🚀 Enter Senior Portal (PIN: 1234)", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
         if login_user("elderly", eld_pin):
             st.success("Authenticated as Eleanor Vance (Senior)!")
-            st.switch_page("pages/1_👴_Elderly_Portal.py")
+            st.switch_page("pages/1_Elderly_Dashboard.py")
         else:
             st.error("Invalid Senior PIN. Default is 1234.")
 
@@ -122,7 +133,7 @@ with col_car:
     if st.button("🚀 Enter Caregiver Cockpit (PIN: 8888)", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
         if login_user("caretaker", car_pin):
             st.success("Authenticated as Sarah Vance (Caregiver)!")
-            st.switch_page("pages/2_🩺_Caretaker_Dashboard.py")
+            st.switch_page("pages/2_Caretaker_Dashboard.py")
         else:
             st.error("Invalid Caregiver PIN. Default is 8888.")
 
@@ -203,5 +214,5 @@ with f3:
 st.info("""
     🎯 **Hackathon Jury & Evaluator Guide:** 
     Use the top sidebar navigation to seamlessly explore all 6 dedicated modules:
-    **1. Senior Portal** • **2. Caregiver Dashboard** • **3. Medication Manager** • **4. Appointments & Vitals** • **5. Adherence Analytics** • **6. System Settings & SMTP**.
+    **1. Elderly Dashboard** • **2. Caretaker Dashboard** • **3. Appointments and Calendar** • **4. Adherence Analytics** • **5. Medication Manager** • **6. System Settings**.
 """)

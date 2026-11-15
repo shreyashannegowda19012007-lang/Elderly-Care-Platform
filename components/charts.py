@@ -147,16 +147,24 @@ def render_time_of_day_chart(df: pd.DataFrame) -> go.Figure:
         fig.add_annotation(text="No time slot data available", showarrow=False, font=dict(size=14))
         return fig
 
+    chart_df = df.copy()
     order_map = {"Morning": 1, "Afternoon": 2, "Evening": 3, "Bedtime": 4}
-    df["order"] = df["time_of_day"].map(order_map).fillna(5)
-    df = df.sort_values("order")
+    color_map = {
+        "Morning": "#3B82F6",
+        "Afternoon": "#F59E0B",
+        "Evening": "#10B981",
+        "Bedtime": "#8B5CF6",
+    }
+    chart_df["order"] = chart_df["time_of_day"].map(order_map).fillna(5)
+    chart_df = chart_df.sort_values("order")
+    colors = [color_map.get(t, "#64748B") for t in chart_df["time_of_day"]]
 
     fig.add_trace(go.Bar(
-        x=df["time_of_day"],
-        y=df["rate"],
-        text=[f"{r:.1f}%" for r in df["rate"]],
+        x=chart_df["time_of_day"],
+        y=chart_df["rate"],
+        text=[f"{r:.1f}%" for r in chart_df["rate"]],
         textposition="auto",
-        marker_color=["#3B82F6", "#F59E0B", "#10B981", "#8B5CF6"][:len(df)],
+        marker_color=colors,
     ))
 
     fig.update_layout(
