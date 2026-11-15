@@ -17,7 +17,7 @@ from components.charts import (
     render_time_of_day_chart,
 )
 from components.header import render_alert_banner, render_app_header
-from db.database import get_adherence_stats, get_patient
+from db.database import get_adherence_stats, get_patient, init_db, seed_initial_data
 from utils.analytics import (
     compute_adherence_timeseries,
     compute_time_drift,
@@ -26,6 +26,8 @@ from utils.analytics import (
 )
 from utils.auth import get_current_user, require_auth
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 

@@ -6,6 +6,7 @@ escalation alerts, dispatches proactive emails via SMTP, and records audit logs.
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -225,9 +226,18 @@ def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emerge
 
 def get_alert_summary(patient_id: int = 1) -> dict[str, Any]:
     """Return summary statistics of active alerts for UI badges."""
-    alerts = get_alerts(patient_id, limit=100)
-    critical_count = sum(1 for a in alerts if a["severity"] == "CRITICAL")
-    warning_count = sum(1 for a in alerts if a["severity"] == "WARNING")
+    try:
+        alerts = get_alerts(patient_id, limit=100)
+    except (sqlite3.Error, KeyError, TypeError, AttributeError):
+        from db.database import init_db, seed_initial_data
+        try:
+            init_db()
+            seed_initial_data()
+            alerts = get_alerts(patient_id, limit=100)
+        except (sqlite3.Error, KeyError, TypeError, AttributeError):
+            alerts = []
+    critical_count = sum(1 for a in alerts if a.get("severity") == "CRITICAL")
+    warning_count = sum(1 for a in alerts if a.get("severity") == "WARNING")
     recent = alerts[:5]
     return {
         "total": len(alerts),

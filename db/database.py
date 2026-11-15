@@ -1148,6 +1148,7 @@ def add_vitals(
 
 def get_alerts(patient_id: int | None = None, limit: int = 50) -> list[dict[str, Any]]:
     """Retrieve logged alerts."""
+    init_db()
     with get_db_connection() as conn:
         cursor = conn.cursor()
         if patient_id:
@@ -1244,3 +1245,11 @@ def check_drug_interactions(drug_names: list[str]) -> list[dict[str, Any]]:
             found_warnings.append(rule)
 
     return found_warnings
+
+
+# Guarantee database schema and default seeds on initial module import
+try:
+    init_db()
+    seed_initial_data()
+except (sqlite3.Error, OSError, RuntimeError):
+    pass

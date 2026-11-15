@@ -7,6 +7,7 @@ proactive background alert synchronization, and a smooth flowy top navigation ba
 from __future__ import annotations
 
 import inspect
+import sqlite3
 from datetime import datetime
 
 import streamlit as st
@@ -181,9 +182,13 @@ def render_app_header() -> None:
 
 def render_alert_banner(patient_id: int = 1) -> None:
     """Render notification bar if there are unhandled critical alerts."""
-    summary = get_alert_summary(patient_id)
-    if summary["critical"] > 0:
-        latest = summary["recent"][0] if summary["recent"] else None
+    try:
+        summary = get_alert_summary(patient_id)
+    except (sqlite3.Error, KeyError, TypeError, AttributeError):
+        return
+
+    if summary and summary.get("critical", 0) > 0:
+        latest = summary["recent"][0] if summary.get("recent") else None
         msg = latest["message"] if latest else "Critical alerts require attention."
         st.markdown(f"""
             <div style="background-color: #FEF2F2; border-left: 5px solid #EF4444; padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);">

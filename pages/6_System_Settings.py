@@ -16,11 +16,15 @@ from db.database import (
     DB_PATH,
     get_alerts,
     get_users,
+    init_db,
+    seed_initial_data,
     update_user_passcode,
 )
 from utils.alerts import get_smtp_config, send_email_alert
 from utils.auth import get_current_user, require_auth
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 

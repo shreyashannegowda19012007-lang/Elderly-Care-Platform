@@ -13,11 +13,19 @@ import streamlit as st
 
 from components.elderly_ui import render_elderly_dose_card, render_elderly_sos_widget
 from components.header import render_alert_banner, render_app_header
-from db.database import get_appointments, get_patient, get_todays_doses
+from db.database import (
+    get_appointments,
+    get_patient,
+    get_todays_doses,
+    init_db,
+    seed_initial_data,
+)
 from utils.auth import get_current_user, require_auth
 from utils.timezone_util import get_now
 from utils.tts import render_speech_button
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 

@@ -17,11 +17,15 @@ from db.database import (
     delete_medication,
     get_medications,
     get_patient,
+    init_db,
+    seed_initial_data,
     update_medication,
 )
 from utils.auth import get_current_user, require_auth
 from utils.interactions import evaluate_interactions
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 

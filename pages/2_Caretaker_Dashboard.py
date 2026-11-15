@@ -20,11 +20,15 @@ from db.database import (
     get_medications,
     get_patient,
     get_todays_doses,
+    init_db,
     mark_dose_status,
+    seed_initial_data,
 )
 from utils.alerts import check_and_trigger_alerts, get_smtp_config, send_email_alert
 from utils.auth import get_current_user, require_auth
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 

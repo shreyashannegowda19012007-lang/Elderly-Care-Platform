@@ -19,10 +19,14 @@ from db.database import (
     get_appointments,
     get_patient,
     get_vitals,
+    init_db,
+    seed_initial_data,
     update_appointment_status,
 )
 from utils.auth import get_current_user, require_auth
 
+init_db()
+seed_initial_data()
 render_app_header()
 render_alert_banner()
 
