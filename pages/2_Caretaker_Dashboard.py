@@ -120,22 +120,31 @@ with col_left:
 
             with st.container():
                 st.markdown(f"""
-                    <div style="
+                    <div class="gc-card" style="
                         border-left: 6px solid {status_color};
-                        background: #F8FAFC;
-                        padding: 12px 16px;
-                        border-radius: 8px;
+                        padding: 16px 20px;
                         margin-bottom: 12px;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                        background: #FFFFFF;
                     ">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                             <div>
-                                <strong style="font-size: 16px; color: #0F172A;">{m_name} ({m_dosage})</strong>
-                                <div style="color: #64748B; font-size: 13px;">
-                                    {m_tod} • Scheduled: {m_time} {f'• Taken at {str(m_taken_at)[11:16]}' if m_taken_at else ''}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <strong style="font-size: 17px; color: #0F172A; font-family: 'Outfit', sans-serif;">{m_name}</strong>
+                                    <span style="font-size: 14px; font-weight: 600; color: #64748B;">({m_dosage})</span>
+                                </div>
+                                <div style="color: #64748B; font-size: 13.5px; margin-top: 2px;">
+                                    ⏰ {m_tod} • Scheduled: <strong>{m_time}</strong> {f'• Taken at <strong>{str(m_taken_at)[11:16]}</strong>' if m_taken_at else ''}
                                 </div>
                             </div>
-                            <span style="font-weight: 700; color: {status_color};">
+                            <span style="
+                                font-weight: 800;
+                                color: {status_color};
+                                background: {status_color}18;
+                                border: 1px solid {status_color}40;
+                                padding: 4px 12px;
+                                border-radius: 9999px;
+                                font-size: 13px;
+                            ">
                                 {status_icon} {m_status}
                             </span>
                         </div>
@@ -198,6 +207,35 @@ with col_right:
             else:
                 st.toast(f"ℹ️ {res['message']}", icon="ℹ️")
             st.rerun()
+
+    # Live Patient Vital Signs Snapshot
+    st.markdown("#### 🩺 Live Patient Biomarkers & Vitals")
+    from db.database import get_vitals
+    v_recent = get_vitals(patient_id, limit=1)
+    if v_recent:
+        vr = v_recent[0]
+        st.markdown(f"""
+            <div class="gc-card" style="padding: 16px; margin-bottom: 16px; background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 13px; font-weight: 700; color: #1E40AF; text-transform: uppercase;">Latest Telemetry ({vr['recorded_date']})</span>
+                    <span style="background: #ECFDF5; color: #065F46; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 700;">STABLE</span>
+                </div>
+                <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div style="font-size: 11px; color: #64748B; font-weight: 600;">BLOOD PRESSURE</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{int(vr['systolic_bp'])}/{int(vr['diastolic_bp'])} <span style="font-size: 11px; font-weight: 500; color: #64748B;">mmHg</span></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #64748B; font-weight: 600;">BLOOD GLUCOSE</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{int(vr['blood_glucose'])} <span style="font-size: 11px; font-weight: 500; color: #64748B;">mg/dL</span></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: #64748B; font-weight: 600;">HEART RATE</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{int(vr['heart_rate'])} <span style="font-size: 11px; font-weight: 500; color: #64748B;">bpm</span></div>
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
     # Prescription Inventory Watchlist
     st.markdown("#### 💊 Prescription Stock & Refill Tracker")

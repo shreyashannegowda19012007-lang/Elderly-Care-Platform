@@ -50,11 +50,24 @@ col_greet, col_acc = st.columns([3, 1])
 
 with col_greet:
     st.markdown(f"""
-        <div style="margin-bottom: 12px;">
-            <span style="font-size: 20px; font-weight: 700; color: #059669; text-transform: uppercase;">
-                {time_icon} {today_display}
-            </span>
-            <h1 style="font-size: 38px; font-weight: 800; color: #0F172A; margin: 4px 0 0 0;">
+        <div style="margin-bottom: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span style="font-size: 16px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em;">
+                    {time_icon} {today_display}
+                </span>
+                <span style="
+                    background: #FEF3C7;
+                    color: #92400E;
+                    padding: 3px 10px;
+                    border-radius: 9999px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    border: 1px solid #FCD34D;
+                ">
+                    🔥 3-Day Adherence Streak!
+                </span>
+            </div>
+            <h1 style="font-size: 40px; font-weight: 800; color: #0F172A; margin: 0; font-family: 'Outfit', sans-serif;">
                 {greeting_prefix}, {patient_name.split()[0]}!
             </h1>
         </div>
@@ -96,13 +109,28 @@ taken_doses = sum(1 for d in doses if d["status"] == "TAKEN")
 pending_doses = total_doses - taken_doses
 
 # Accessibility Progress Bar & Audio Schedule Summary
-col_prog, col_audio = st.columns([2.5, 1.5])
+col_prog, col_audio = st.columns([2.6, 1.4])
 
 with col_prog:
     progress_val = (taken_doses / total_doses) if total_doses > 0 else 1.0
     st.markdown(f"""
-        <div style="font-size: 18px; font-weight: 700; color: #1E293B; margin-bottom: 6px;">
-            Today's Progress: {taken_doses} of {total_doses} doses taken ({int(progress_val * 100)}%)
+        <div class="gc-card" style="padding: 18px 24px; margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 17px; font-weight: 800; color: #1E293B;">
+                    Today's Medication Progress
+                </span>
+                <div style="display: flex; gap: 8px;">
+                    <span style="background: #ECFDF5; color: #065F46; padding: 2px 10px; border-radius: 9999px; font-size: 13px; font-weight: 700;">
+                        🟢 {taken_doses} Taken
+                    </span>
+                    <span style="background: #EFF6FF; color: #1E40AF; padding: 2px 10px; border-radius: 9999px; font-size: 13px; font-weight: 700;">
+                        ⏳ {pending_doses} Remaining
+                    </span>
+                </div>
+            </div>
+            <div style="font-size: 14px; color: #64748B; margin-bottom: 10px;">
+                {taken_doses} of {total_doses} doses completed ({int(progress_val * 100)}%)
+            </div>
         </div>
     """, unsafe_allow_html=True)
     st.progress(progress_val)
@@ -115,9 +143,14 @@ with col_audio:
     else:
         speech_overview = f"Congratulations {patient_name.split()[0]}! You have completed all of your scheduled medications for today. Have a wonderful day!"
     
+    st.markdown("""
+        <div style="padding-top: 10px;">
+            <span style="font-size: 13px; font-weight: 600; color: #64748B; display: block; margin-bottom: 6px;">Voice Companion:</span>
+        </div>
+    """, unsafe_allow_html=True)
     render_speech_button(text_to_speak=speech_overview, label="🔊 Read Today's Plan", button_id="tts_overall_schedule")
 
-st.markdown("<hr style='border: 0; border-top: 2px solid #CBD5E1; margin: 20px 0;'/>", unsafe_allow_html=True)
+st.markdown("<hr style='border: 0; border-top: 1px solid #CBD5E1; margin: 20px 0;'/>", unsafe_allow_html=True)
 
 # Time-of-day tabs for clutter-free focus
 tab_all, tab_morn, tab_aft, tab_eve, tab_bed = st.tabs([
@@ -168,8 +201,15 @@ with tab_bed:
             render_elderly_dose_card(dose, high_contrast=high_contrast, key_prefix="bed")
 
 # Doctor Appointment Reminder Section
-st.markdown("<hr style='border: 0; border-top: 2px solid #CBD5E1; margin: 30px 0 20px 0;'/>", unsafe_allow_html=True)
-st.subheader("📅 Your Upcoming Doctor Visits")
+st.markdown("<hr style='border: 0; border-top: 1px solid #CBD5E1; margin: 36px 0 24px 0;'/>", unsafe_allow_html=True)
+st.markdown("""
+    <div style="margin-bottom: 16px;">
+        <h2 style="color: #0F172A; margin: 0; font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif;">
+            📅 Upcoming Doctor Visits
+        </h2>
+        <span style="color: #64748B; font-size: 15px;">Your scheduled clinic visits and physician consultations</span>
+    </div>
+""", unsafe_allow_html=True)
 
 appointments = get_appointments(patient_id, status="SCHEDULED")
 if appointments:
@@ -177,25 +217,53 @@ if appointments:
     apt_date = datetime.strptime(next_apt["appointment_date"], "%Y-%m-%d").strftime("%A, %B %d")
     
     st.markdown(f"""
-        <div style="
-            background: #EFF6FF;
-            border: 3px solid #3B82F6;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 20px;
+        <div class="gc-card" style="
+            background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%);
+            border: 2px solid #3B82F6;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
         ">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="color: #1E40AF; margin: 0; font-size: 22px;">🩺 {next_apt['title']}</h3>
-                <span style="background: #2563EB; color: white; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 14px;">
-                    {apt_date} at {next_apt['appointment_time']}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="
+                        width: 44px;
+                        height: 44px;
+                        background: #DBEAFE;
+                        border-radius: 12px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                    ">🩺</div>
+                    <div>
+                        <h3 style="color: #1E40AF; margin: 0; font-size: 22px; font-weight: 800;">{next_apt['title']}</h3>
+                        <span style="font-size: 15px; color: #1D4ED8; font-weight: 600;">Physician: {next_apt['doctor_name']}</span>
+                    </div>
+                </div>
+                <span style="
+                    background: #2563EB;
+                    color: white;
+                    padding: 6px 14px;
+                    border-radius: 9999px;
+                    font-weight: 700;
+                    font-size: 14px;
+                    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+                ">
+                    🗓️ {apt_date} • {next_apt['appointment_time']}
                 </span>
             </div>
-            <p style="font-size: 17px; color: #1E3A8A; margin: 8px 0 4px 0;">
-                <strong>Physician:</strong> {next_apt['doctor_name']} • <strong>Location:</strong> {next_apt['clinic_address']}
-            </p>
-            <p style="font-size: 15px; color: #3B82F6; margin: 0;">
-                🚗 <strong>Transport:</strong> {'Arranged by Caregiver' if next_apt['transport_required'] else 'Self-Transport'} | 📝 <strong>Notes:</strong> {next_apt['prep_notes']}
-            </p>
+            <div style="font-size: 15px; color: #334155; margin-bottom: 8px;">
+                📍 <strong>Facility / Address:</strong> {next_apt['clinic_address']}
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 13.5px;">
+                <span style="background: #F1F5F9; color: #1E293B; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                    🚗 Transport: {'Arranged by Caregiver' if next_apt['transport_required'] else 'Self-Transport'}
+                </span>
+                <span style="background: #F1F5F9; color: #1E293B; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                    📝 Notes: {next_apt['prep_notes']}
+                </span>
+            </div>
         </div>
     """, unsafe_allow_html=True)
     

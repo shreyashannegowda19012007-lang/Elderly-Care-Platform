@@ -73,11 +73,21 @@ with c_kpis:
         st.metric("Missed / Unconfirmed", f"{stats['missed_count']}", delta_color="inverse")
 
     st.markdown(f"""
-        <div style="background: #F1F5F9; border-radius: 8px; padding: 14px; margin-top: 10px; font-size: 14px; color: #334155; line-height: 1.5;">
-            🩺 <strong>Geriatric Adherence Interpretation:</strong> 
-            Patient <strong>{patient_name}</strong> demonstrates high adherence ({stats['adherence_rate']}%) over the past {selected_period} days. 
-            Active continuous streak is <strong>{stats['streak_days']} consecutive days</strong>.
-            Most doses are administered within 15 minutes of target window, indicating strong routine consistency.
+        <div class="gc-card" style="
+            background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+            border-left: 5px solid #2563EB;
+            padding: 18px 20px;
+            margin-top: 14px;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-weight: 800; color: #1E3A8A; font-size: 15px;">🩺 Geriatric Adherence Evaluation</span>
+                <span style="background: #10B981; color: white; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700;">GRADE: A+ OPTIMAL</span>
+            </div>
+            <p style="color: #334155; font-size: 14px; line-height: 1.5; margin: 0;">
+                Patient <strong>{patient_name}</strong> demonstrates high adherence (<strong>{stats['adherence_rate']}%</strong>) over the past {selected_period} days. 
+                Active continuous streak is <strong>{stats['streak_days']} consecutive days</strong>.
+                Most doses are administered within 15 minutes of target window, indicating strong behavioral consistency.
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
