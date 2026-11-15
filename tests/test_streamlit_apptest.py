@@ -17,7 +17,7 @@ WORKSPACE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def test_home_page_apptest():
     """Verify Home.py executes and renders with zero exceptions."""
     home_path = os.path.join(WORKSPACE_ROOT, "Home.py")
-    at = AppTest.from_file(home_path).run()
+    at = AppTest.from_file(home_path).run(timeout=10)
     assert len(at.exception) == 0, f"Exceptions in Home.py: {[e.value for e in at.exception]}"
 
 
@@ -30,7 +30,7 @@ def test_home_page_authenticated_apptest():
     at.session_state["user_id"] = 1
     at.session_state["user_name"] = "Eleanor Vance"
     at.session_state["elderly_patient_id"] = 1
-    at.run()
+    at.run(timeout=10)
     assert len(at.exception) == 0, f"Exceptions in Home.py (Elderly Auth): {[e.value for e in at.exception]}"
 
 
@@ -46,7 +46,7 @@ def test_all_pages_apptest(page_name):
     """Verify each page in pages/ executes without uncaught exceptions when unauthenticated."""
     page_path = os.path.join(WORKSPACE_ROOT, "pages", page_name)
     assert os.path.exists(page_path), f"Page file {page_name} does not exist at {page_path}"
-    at = AppTest.from_file(page_path).run()
+    at = AppTest.from_file(page_path).run(timeout=10)
     assert len(at.exception) == 0, f"Exceptions in unauthenticated {page_name}: {[e.value for e in at.exception]}"
 
 
@@ -70,7 +70,7 @@ def test_all_pages_authenticated_apptest(page_name, role, user_id, user_name):
     at.session_state["user_id"] = user_id
     at.session_state["user_name"] = user_name
     at.session_state["elderly_patient_id"] = 1
-    at.run()
+    at.run(timeout=10)
     assert len(at.exception) == 0, f"Exceptions in authenticated {page_name} ({role}): {[e.value for e in at.exception]}"
 
 
@@ -84,5 +84,5 @@ def test_elderly_high_contrast_mode_apptest():
     at.session_state["user_name"] = "Eleanor Vance"
     at.session_state["elderly_patient_id"] = 1
     at.session_state["high_contrast"] = True
-    at.run()
+    at.run(timeout=10)
     assert len(at.exception) == 0, f"Exceptions in Elderly High Contrast mode: {[e.value for e in at.exception]}"
