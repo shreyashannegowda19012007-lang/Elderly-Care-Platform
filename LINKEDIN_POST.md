@@ -37,7 +37,7 @@ Python • Streamlit • Pandas • Plotly • SQLite (WAL Concurrency) • SMTP
 [INSERT_YOUR_STREAMLIT_APP_LINK_HERE]
 
 **Inspect the Open-Source Codebase:**
-[INSERT_YOUR_GITHUB_REPO_LINK_HERE]
+https://github.com/shreyashannegowda19012007-lang/Elderly-Care-Platform
 
 Passcodes to explore both roles:
 Senior PIN: `1234` | Caregiver PIN: `8888`

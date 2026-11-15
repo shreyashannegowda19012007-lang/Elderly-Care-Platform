@@ -270,8 +270,8 @@ Elderly Care Platform/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/elderly-care-platform.git
-cd elderly-care-platform
+git clone https://github.com/shreyashannegowda19012007-lang/Elderly-Care-Platform.git
+cd Elderly-Care-Platform
 ```
 
 ### 2. Create and Activate Virtual Environment
