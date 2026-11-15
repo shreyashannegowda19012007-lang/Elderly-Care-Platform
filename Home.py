@@ -353,30 +353,34 @@ with f4:
         </div>
     """, unsafe_allow_html=True)
 
-# Quick Evaluator & Navigation Help
+# Family Care Assurance Note
 st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 st.markdown("""
     <div style="
         background: #F8FAFC;
         border: 1.5px solid #E2E8F0;
-        border-radius: 16px;
-        padding: 18px 24px;
+        border-radius: 18px;
+        padding: 20px 24px;
         margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
     ">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <strong style="color: #1E293B; font-size: 15px;">Quick Tour:</strong>
-                <span style="color: #64748B; font-size: 14px; margin-left: 6px;">
-                    Explore all 6 pages in the sidebar: 
-                    <strong>Elderly Dashboard</strong> &bull; 
-                    <strong>Caretaker Dashboard</strong> &bull; 
-                    <strong>Appointments</strong> &bull; 
-                    <strong>Analytics</strong> &bull; 
-                    <strong>Prescriptions</strong> &bull; 
-                    <strong>Settings</strong>
-                </span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: #ECFDF5; border: 1.5px solid #A7F3D0; display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                </svg>
             </div>
-            <span style="font-size: 13px; color: #059669; font-weight: 700;">156/156 Tests Passing</span>
+            <div>
+                <strong style="color: #0F172A; font-size: 15px;">Private, Protected Healthcare Environment</strong>
+                <div style="color: #64748B; font-size: 13.5px;">All patient medical telemetry and medication records are encrypted and stored securely.</div>
+            </div>
         </div>
+        <span style="background: #ECFDF5; color: #065F46; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">
+            Secure Family Network Active
+        </span>
     </div>
 """, unsafe_allow_html=True)

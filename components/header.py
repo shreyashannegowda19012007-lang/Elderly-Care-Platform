@@ -91,7 +91,7 @@ def render_sidebar_companion(current_user: dict, role: str | None) -> None:
 
         st.markdown("""
             <div style="text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
-                <span style="font-size: 11.5px; color: #94A3B8; font-weight: 600;">GoldenCare Platform &bull; v2.4</span>
+                <span style="font-size: 11.5px; color: #94A3B8; font-weight: 600;">GoldenCare &bull; Family Health Companion</span>
             </div>
         """, unsafe_allow_html=True)
 
@@ -231,9 +231,9 @@ def render_app_header() -> None:
     curr_page = _detect_current_page()
     nav_links = [
         ("Home", "Home.py"),
-        ("Senior Schedule", "pages/1_Elderly_Dashboard.py"),
-        ("Caregiver Cockpit", "pages/2_Caretaker_Dashboard.py"),
-        ("Appointments", "pages/3_Appointments_and_Calendar.py"),
+        ("Senior Portal", "pages/1_Elderly_Dashboard.py"),
+        ("Caregiver", "pages/2_Caretaker_Dashboard.py"),
+        ("Calendar", "pages/3_Appointments_and_Calendar.py"),
         ("Analytics", "pages/4_Adherence_Analytics.py"),
         ("Prescriptions", "pages/5_Medication_Manager.py"),
         ("Settings", "pages/6_System_Settings.py"),

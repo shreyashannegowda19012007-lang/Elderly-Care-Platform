@@ -2,6 +2,7 @@
 Design System and Modern Theme Styling for GoldenCare Platform.
 Injects healthcare-grade CSS, warm typography, responsive tactile cards,
 micro-interactions, and accessibility enhancements across all Streamlit pages.
+Completely removes default Streamlit chrome (Deploy button, toolbar, menu).
 """
 
 from __future__ import annotations
@@ -24,6 +25,34 @@ def apply_custom_styles() -> None:
             h1, h2, h3, h4, h5 {
                 font-family: 'Outfit', sans-serif !important;
                 letter-spacing: -0.02em;
+            }
+
+            /* HIDE STREAMLIT DEPLOY BUTTON, HEADER CHROME, TOOLBAR, & FOOTER */
+            header[data-testid="stHeader"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+            }
+
+            [data-testid="stToolbar"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+            }
+
+            .stDeployButton {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            #MainMenu {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            footer {
+                display: none !important;
+                visibility: hidden !important;
             }
 
             /* Smooth Scrolling Across Whole Window */
@@ -65,15 +94,10 @@ def apply_custom_styles() -> None:
             }
 
             .main .block-container {
-                padding-top: 1.5rem;
-                padding-bottom: 3.5rem;
-                max-width: 1200px;
-                animation: smoothFlowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            }
-
-            /* HIDE DEFAULT GENERIC STREAMLIT MULTI-PAGE NAVIGATION LIST */
-            [data-testid="stSidebarNav"] {
-                display: none !important;
+                padding-top: 1.5rem !important;
+                padding-bottom: 3rem !important;
+                max-width: 1200px !important;
+                animation: smoothFlowIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
             }
 
             /* Streamlit Sidebar Custom Polish */
@@ -84,46 +108,65 @@ def apply_custom_styles() -> None:
             }
 
             [data-testid="stSidebar"] .block-container {
-                padding-top: 1.5rem !important;
+                padding-top: 1.2rem !important;
                 padding-left: 1.2rem !important;
                 padding-right: 1.2rem !important;
             }
 
-            [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-                gap: 0.35rem !important;
+            /* Style the Sidebar Multi-Page Navigation List */
+            [data-testid="stSidebarNav"] {
+                padding-top: 0.5rem !important;
+                margin-bottom: 1rem !important;
             }
 
-            /* Custom Flowing Navigation Links (st.page_link) */
-            [data-testid="stPageLink-NavLink"] {
-                border-radius: 12px !important;
-                padding: 10px 14px !important;
+            [data-testid="stSidebarNav"]::before {
+                content: "CARE NAVIGATION";
+                display: block;
+                font-size: 11px;
+                font-weight: 800;
+                color: #94A3B8;
+                letter-spacing: 0.06em;
+                padding: 6px 14px 10px 14px;
+                text-transform: uppercase;
+            }
+
+            [data-testid="stSidebarNav"] ul {
+                gap: 5px !important;
+            }
+
+            [data-testid="stSidebarNav"] li {
                 margin-bottom: 4px !important;
-                font-weight: 600 !important;
+            }
+
+            [data-testid="stSidebarNav"] a {
+                border-radius: 12px !important;
+                padding: 10px 16px !important;
                 font-size: 14.5px !important;
+                font-weight: 600 !important;
                 color: #334155 !important;
-                background-color: #F8FAFC !important;
+                background: #F8FAFC !important;
                 border: 1px solid #E2E8F0 !important;
-                transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
                 display: flex !important;
                 align-items: center !important;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
                 text-decoration: none !important;
             }
 
-            [data-testid="stPageLink-NavLink"]:hover {
-                background-color: #ECFDF5 !important;
+            [data-testid="stSidebarNav"] a:hover {
+                background: #ECFDF5 !important;
                 border-color: #10B981 !important;
                 color: #065F46 !important;
                 transform: translateX(4px) !important;
                 box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12) !important;
             }
 
-            [data-testid="stPageLink-NavLink"][aria-current="page"] {
-                background-color: #ECFDF5 !important;
+            [data-testid="stSidebarNav"] a[aria-current="page"] {
+                background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
                 border-color: #059669 !important;
                 color: #065F46 !important;
                 font-weight: 800 !important;
-                border-left: 4.5px solid #059669 !important;
-                box-shadow: 0 4px 12px rgba(6, 95, 70, 0.08) !important;
+                border-left: 5px solid #059669 !important;
+                box-shadow: 0 4px 14px rgba(6, 95, 70, 0.1) !important;
             }
 
             /* Sleek Card Styling */
