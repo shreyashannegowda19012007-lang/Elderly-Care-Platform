@@ -1,17 +1,99 @@
 """
 Global Header and Navigation Component for GoldenCare Platform.
 Provides persistent role context, high-contrast toggle, emergency SOS button,
-and proactive background alert synchronization.
+proactive background alert synchronization, and a smooth flowy top navigation bar.
 """
 
 from __future__ import annotations
 
 import streamlit as st
+import inspect
 from datetime import datetime
 from utils.auth import get_current_user, login_user, logout_user
 from utils.alerts import check_and_trigger_alerts, dispatch_sos_alert, get_alert_summary
 from db.database import get_patient
 from components.styles import apply_custom_styles
+
+
+def _detect_current_page() -> str:
+    """Identify the caller page filename to highlight the active navigation pill."""
+    for frame in inspect.stack():
+        fname = frame.filename.replace("\\", "/")
+        if "pages/" in fname:
+            return fname.split("/")[-1]
+        elif "Home.py" in fname:
+            return "Home.py"
+    return "Home.py"
+
+
+def render_sidebar_companion(current_user: dict, role: str | None) -> None:
+    """Render modern, branded companion tools in the sidebar."""
+    with st.sidebar:
+        # Brand Emblem & Live Indicator
+        st.markdown("""
+            <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0 16px 0; border-bottom: 1.5px solid #E2E8F0; margin-bottom: 14px;">
+                <div style="
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+                ">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M2 12h20"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: #0F172A; font-weight: 800; font-size: 20px; line-height: 1.1;">GoldenCare</h3>
+                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                        <span class="pulse-green"></span>
+                        <span style="font-size: 12px; color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Live Family Sync</span>
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Active Profile Context in Sidebar
+        if role:
+            badge_color = "#059669" if role == "elderly" else "#0284C7"
+            badge_bg = "#ECFDF5" if role == "elderly" else "#F0F9FF"
+            role_label = "Senior Patient (Eleanor)" if role == "elderly" else "Caregiver (Sarah)"
+            user_name = current_user.get("name", "Active User")
+            st.markdown(f"""
+                <div style="background: {badge_bg}; border: 1.5px solid {badge_color}; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                    <div style="font-size: 11px; font-weight: 800; color: {badge_color}; text-transform: uppercase; letter-spacing: 0.05em;">Current Profile</div>
+                    <div style="font-size: 15px; font-weight: 800; color: #0F172A; margin: 2px 0;">{user_name}</div>
+                    <div style="font-size: 12.5px; color: #475569; font-weight: 500;">{role_label}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button("Switch Profile", key="sb_switch_btn", width="stretch"):
+                logout_user()
+                st.switch_page("Home.py")
+        else:
+            st.markdown("""
+                <div style="background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Profile Access</div>
+                    <div style="font-size: 14px; font-weight: 700; color: #1E293B; margin-top: 2px;">PIN Protected</div>
+                    <div style="font-size: 12px; color: #64748B;">Choose Senior or Caregiver</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+
+        # Emergency Help in Sidebar
+        if st.button("EMERGENCY SOS", key="sb_sos_btn", type="primary", width="stretch"):
+            dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
+            st.toast("EMERGENCY ALERT SENT TO CAREGIVER & CLINIC")
+            st.error("Emergency Alert Dispatched! Caregiver Sarah has been notified.")
+
+        st.markdown("""
+            <div style="text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
+                <span style="font-size: 11.5px; color: #94A3B8; font-weight: 600;">GoldenCare Platform &bull; v2.4</span>
+            </div>
+        """, unsafe_allow_html=True)
 
 
 def render_app_header() -> None:
@@ -24,6 +106,9 @@ def render_app_header() -> None:
     current_user = get_current_user()
     role = current_user.get("role")
     user_name = current_user.get("name")
+
+    # Render custom styled companion elements in sidebar
+    render_sidebar_companion(current_user, role)
 
     # Trigger proactive alert check if authenticated
     if authenticated:
@@ -142,7 +227,30 @@ def render_app_header() -> None:
                     st.toast("EMERGENCY ALERT SENT")
                     st.error("Emergency Alert Dispatched!")
 
-    st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 10px 0 22px 0;'></div>", unsafe_allow_html=True)
+    # Flowy Horizontal Quick Navigation Bar
+    curr_page = _detect_current_page()
+    nav_links = [
+        ("Home", "Home.py"),
+        ("Senior Schedule", "pages/1_Elderly_Dashboard.py"),
+        ("Caregiver Cockpit", "pages/2_Caretaker_Dashboard.py"),
+        ("Appointments", "pages/3_Appointments_and_Calendar.py"),
+        ("Analytics", "pages/4_Adherence_Analytics.py"),
+        ("Prescriptions", "pages/5_Medication_Manager.py"),
+        ("Settings", "pages/6_System_Settings.py"),
+    ]
+
+    st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+    cols = st.columns(len(nav_links))
+    for idx, (label, target_page) in enumerate(nav_links):
+        target_name = target_page.split("/")[-1]
+        is_active = (target_name == curr_page)
+        with cols[idx]:
+            btn_type = "primary" if is_active else "secondary"
+            if st.button(label, key=f"flow_nav_{idx}_{target_name}", type=btn_type, width="stretch"):
+                if not is_active:
+                    st.switch_page(target_page)
+
+    st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 12px 0 20px 0;'></div>", unsafe_allow_html=True)
 
 
 def render_alert_banner(patient_id: int = 1) -> None:

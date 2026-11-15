@@ -26,16 +26,104 @@ def apply_custom_styles() -> None:
                 letter-spacing: -0.02em;
             }
 
+            /* Smooth Scrolling Across Whole Window */
+            html {
+                scroll-behavior: smooth !important;
+            }
+
+            /* Thin, Modern Healthcare Scrollbar */
+            ::-webkit-scrollbar {
+                width: 7px;
+                height: 7px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #F8FAFC;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #CBD5E1;
+                border-radius: 9999px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #94A3B8;
+            }
+
             /* Main Layout Background - Warm, Reassuring Healthcare Palette */
             .stApp {
                 background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 50%, #E2E8F0 100%);
             }
 
-            /* Main Container Padding */
+            /* Flowy Page Transitions: Subtle Entrance Animation */
+            @keyframes smoothFlowIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
             .main .block-container {
                 padding-top: 1.5rem;
                 padding-bottom: 3.5rem;
                 max-width: 1200px;
+                animation: smoothFlowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            }
+
+            /* HIDE DEFAULT GENERIC STREAMLIT MULTI-PAGE NAVIGATION LIST */
+            [data-testid="stSidebarNav"] {
+                display: none !important;
+            }
+
+            /* Streamlit Sidebar Custom Polish */
+            [data-testid="stSidebar"] {
+                background-color: #FFFFFF !important;
+                border-right: 1.5px solid #E2E8F0 !important;
+                box-shadow: 4px 0 25px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            [data-testid="stSidebar"] .block-container {
+                padding-top: 1.5rem !important;
+                padding-left: 1.2rem !important;
+                padding-right: 1.2rem !important;
+            }
+
+            [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+                gap: 0.35rem !important;
+            }
+
+            /* Custom Flowing Navigation Links (st.page_link) */
+            [data-testid="stPageLink-NavLink"] {
+                border-radius: 12px !important;
+                padding: 10px 14px !important;
+                margin-bottom: 4px !important;
+                font-weight: 600 !important;
+                font-size: 14.5px !important;
+                color: #334155 !important;
+                background-color: #F8FAFC !important;
+                border: 1px solid #E2E8F0 !important;
+                transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                display: flex !important;
+                align-items: center !important;
+                text-decoration: none !important;
+            }
+
+            [data-testid="stPageLink-NavLink"]:hover {
+                background-color: #ECFDF5 !important;
+                border-color: #10B981 !important;
+                color: #065F46 !important;
+                transform: translateX(4px) !important;
+                box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12) !important;
+            }
+
+            [data-testid="stPageLink-NavLink"][aria-current="page"] {
+                background-color: #ECFDF5 !important;
+                border-color: #059669 !important;
+                color: #065F46 !important;
+                font-weight: 800 !important;
+                border-left: 4.5px solid #059669 !important;
+                box-shadow: 0 4px 12px rgba(6, 95, 70, 0.08) !important;
             }
 
             /* Sleek Card Styling */
@@ -45,25 +133,14 @@ def apply_custom_styles() -> None:
                 padding: 24px;
                 border: 1px solid rgba(226, 232, 240, 0.9);
                 box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
-                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
                 margin-bottom: 20px;
             }
 
             .gc-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.08);
+                transform: translateY(-3px);
+                box-shadow: 0 20px 32px -10px rgba(15, 23, 42, 0.08);
                 border-color: rgba(148, 163, 184, 0.6);
-            }
-
-            /* Tactile Senior Pill Box Card */
-            .gc-senior-card {
-                background: #FFFFFF;
-                border-radius: 22px;
-                padding: 26px;
-                border: 2px solid #E2E8F0;
-                box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.06);
-                transition: all 0.2s ease;
-                margin-bottom: 20px;
             }
 
             /* Glowing Status Dot Animation */
@@ -89,7 +166,7 @@ def apply_custom_styles() -> None:
                 padding: 20px 22px;
                 border: 1px solid #E2E8F0;
                 box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
-                transition: all 0.2s ease;
+                transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             }
 
             [data-testid="stMetric"]:hover {
@@ -153,7 +230,7 @@ def apply_custom_styles() -> None:
                 font-size: 16px !important;
                 letter-spacing: 0.01em !important;
                 box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
-                transition: all 0.2s ease !important;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
                 min-height: 48px !important;
             }
 
@@ -172,7 +249,7 @@ def apply_custom_styles() -> None:
                 padding: 12px 20px !important;
                 font-weight: 600 !important;
                 font-size: 15px !important;
-                transition: all 0.2s ease !important;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
                 min-height: 48px !important;
             }
 
@@ -210,40 +287,10 @@ def apply_custom_styles() -> None:
                 font-weight: 600 !important;
             }
 
-            /* Streamlit Sidebar Polish */
-            [data-testid="stSidebar"] {
-                background-color: #FFFFFF !important;
-                border-right: 1px solid #E2E8F0 !important;
-            }
-
-            [data-testid="stSidebarNav"] {
-                padding-top: 1rem;
-            }
-
-            [data-testid="stSidebarNav"] a {
-                border-radius: 10px !important;
-                padding: 8px 14px !important;
-                font-weight: 600 !important;
-                color: #334155 !important;
-                margin-bottom: 4px !important;
-                transition: all 0.15s ease !important;
-            }
-
-            [data-testid="stSidebarNav"] a:hover {
-                background-color: #F1F5F9 !important;
-                color: #0F172A !important;
-            }
-
-            [data-testid="stSidebarNav"] a[aria-current="page"] {
-                background-color: #ECFDF5 !important;
-                color: #065F46 !important;
-                font-weight: 700 !important;
-            }
-
             /* Realistic 3D CSS Pill Graphic */
             .pill-capsule {
                 display: inline-block;
-                width: 36px;
+                width: 38px;
                 height: 18px;
                 border-radius: 9999px;
                 border: 2px solid rgba(255,255,255,0.8);
