@@ -26,76 +26,6 @@ def _detect_current_page() -> str:
     return "Home.py"
 
 
-def render_sidebar_companion(current_user: dict, role: str | None) -> None:
-    """Render modern, branded companion tools in the sidebar."""
-    with st.sidebar:
-        # Brand Emblem & Live Indicator
-        st.markdown("""
-            <div style="display: flex; align-items: center; gap: 12px; padding: 4px 0 16px 0; border-bottom: 1.5px solid #E2E8F0; margin-bottom: 14px;">
-                <div style="
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 12px;
-                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
-                ">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2v20M2 12h20"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 style="margin: 0; color: #0F172A; font-weight: 800; font-size: 20px; line-height: 1.1;">GoldenCare</h3>
-                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
-                        <span class="pulse-green"></span>
-                        <span style="font-size: 12px; color: #059669; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Live Family Sync</span>
-                    </div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Active Profile Context in Sidebar
-        if role:
-            badge_color = "#059669" if role == "elderly" else "#0284C7"
-            badge_bg = "#ECFDF5" if role == "elderly" else "#F0F9FF"
-            role_label = "Senior Patient (Eleanor)" if role == "elderly" else "Caregiver (Sarah)"
-            user_name = current_user.get("name", "Active User")
-            st.markdown(f"""
-                <div style="background: {badge_bg}; border: 1.5px solid {badge_color}; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                    <div style="font-size: 11px; font-weight: 800; color: {badge_color}; text-transform: uppercase; letter-spacing: 0.05em;">Current Profile</div>
-                    <div style="font-size: 15px; font-weight: 800; color: #0F172A; margin: 2px 0;">{user_name}</div>
-                    <div style="font-size: 12.5px; color: #475569; font-weight: 500;">{role_label}</div>
-                </div>
-            """, unsafe_allow_html=True)
-            if st.button("Switch Profile", key="sb_switch_btn", width="stretch"):
-                logout_user()
-                st.switch_page("Home.py")
-        else:
-            st.markdown("""
-                <div style="background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;">
-                    <div style="font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Profile Access</div>
-                    <div style="font-size: 14px; font-weight: 700; color: #1E293B; margin-top: 2px;">PIN Protected</div>
-                    <div style="font-size: 12px; color: #64748B;">Choose Senior or Caregiver</div>
-                </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-
-        # Emergency Help in Sidebar
-        if st.button("EMERGENCY SOS", key="sb_sos_btn", type="primary", width="stretch"):
-            dispatch_sos_alert(patient_id=current_user.get("patient_id", 1))
-            st.toast("EMERGENCY ALERT SENT TO CAREGIVER & CLINIC")
-            st.error("Emergency Alert Dispatched! Caregiver Sarah has been notified.")
-
-        st.markdown("""
-            <div style="text-align: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #E2E8F0;">
-                <span style="font-size: 11.5px; color: #94A3B8; font-weight: 600;">GoldenCare &bull; Family Health Companion</span>
-            </div>
-        """, unsafe_allow_html=True)
-
-
 def render_app_header() -> None:
     """Render top application header with user badge, quick switcher, and SOS trigger."""
     # Apply universal modern design system styles
@@ -106,9 +36,6 @@ def render_app_header() -> None:
     current_user = get_current_user()
     role = current_user.get("role")
     user_name = current_user.get("name")
-
-    # Render custom styled companion elements in sidebar
-    render_sidebar_companion(current_user, role)
 
     # Trigger proactive alert check if authenticated
     if authenticated:

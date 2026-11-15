@@ -173,21 +173,11 @@ with tab_logs:
     else:
         st.info("No alert logs registered.")
 
-# 4. Maintenance & Reset
+# 4. Storage & Diagnostics
 with tab_maint:
-    st.subheader("Storage & Diagnostic Info")
+    st.subheader("Storage & Diagnostic Information")
     st.write(f"**Database Location:** `{DB_PATH}`")
     if os.path.exists(DB_PATH):
         db_size_kb = os.path.getsize(DB_PATH) / 1024
         st.write(f"**Database Size:** `{db_size_kb:.1f} KB`")
-
-    st.markdown("#### Reset Demo State")
-    st.warning("Need to restore the initial demo state with rich clinical records for judges?")
-    if st.button("Reset & Reseed Database to Fresh Demo State", type="secondary"):
-        with st.spinner("Reinitializing tables and inserting fresh 14-day clinical records..."):
-            try:
-                reset_database()
-                st.success("Database cleanly reseeded with 14-day history, Eleanor Vance, Sarah Vance, and complete schedules.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error resetting database: {str(e)}")
+    st.info("Database Write-Ahead Logging (WAL) is active for concurrent multi-user synchronization.")

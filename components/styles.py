@@ -2,7 +2,8 @@
 Design System and Modern Theme Styling for GoldenCare Platform.
 Injects healthcare-grade CSS, warm typography, responsive tactile cards,
 micro-interactions, and accessibility enhancements across all Streamlit pages.
-Completely removes default Streamlit chrome (Deploy button, toolbar, menu).
+Completely removes default Streamlit chrome (Deploy button, toolbar, menu)
+and completely hides the vertical sidebar for a unified horizontal web layout.
 """
 
 from __future__ import annotations
@@ -44,6 +45,24 @@ def apply_custom_styles() -> None:
                 overflow: hidden !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
+            }
+
+            /* COMPLETELY REMOVE & HIDE THE VERTICAL SIDEBAR & EXPAND/COLLAPSE CHEVRON */
+            [data-testid="stSidebar"], 
+            section[data-testid="stSidebar"], 
+            [data-testid="collapsedControl"],
+            [data-testid="stSidebarNav"] {
+                display: none !important;
+                visibility: hidden !important;
+                width: 0px !important;
+                min-width: 0px !important;
+                max-width: 0px !important;
+                height: 0px !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             /* Smooth Scrolling Across Whole Window */
@@ -89,75 +108,6 @@ def apply_custom_styles() -> None:
                 padding-bottom: 3rem !important;
                 max-width: 1200px !important;
                 animation: smoothFlowIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            }
-
-            /* Streamlit Sidebar Custom Polish */
-            [data-testid="stSidebar"] {
-                background-color: #FFFFFF !important;
-                border-right: 1.5px solid #E2E8F0 !important;
-                box-shadow: 4px 0 25px rgba(0, 0, 0, 0.03) !important;
-            }
-
-            [data-testid="stSidebar"] .block-container {
-                padding-top: 1.2rem !important;
-                padding-left: 1.2rem !important;
-                padding-right: 1.2rem !important;
-            }
-
-            /* Style the Sidebar Multi-Page Navigation List */
-            [data-testid="stSidebarNav"] {
-                padding-top: 0.5rem !important;
-                margin-bottom: 1rem !important;
-            }
-
-            [data-testid="stSidebarNav"]::before {
-                content: "CARE NAVIGATION";
-                display: block;
-                font-size: 11px;
-                font-weight: 800;
-                color: #94A3B8;
-                letter-spacing: 0.06em;
-                padding: 6px 14px 10px 14px;
-                text-transform: uppercase;
-            }
-
-            [data-testid="stSidebarNav"] ul {
-                gap: 5px !important;
-            }
-
-            [data-testid="stSidebarNav"] li {
-                margin-bottom: 4px !important;
-            }
-
-            [data-testid="stSidebarNav"] a {
-                border-radius: 12px !important;
-                padding: 10px 16px !important;
-                font-size: 14.5px !important;
-                font-weight: 600 !important;
-                color: #334155 !important;
-                background: #F8FAFC !important;
-                border: 1px solid #E2E8F0 !important;
-                display: flex !important;
-                align-items: center !important;
-                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                text-decoration: none !important;
-            }
-
-            [data-testid="stSidebarNav"] a:hover {
-                background: #ECFDF5 !important;
-                border-color: #10B981 !important;
-                color: #065F46 !important;
-                transform: translateX(4px) !important;
-                box-shadow: 0 4px 14px rgba(16, 185, 129, 0.12) !important;
-            }
-
-            [data-testid="stSidebarNav"] a[aria-current="page"] {
-                background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
-                border-color: #059669 !important;
-                color: #065F46 !important;
-                font-weight: 800 !important;
-                border-left: 5px solid #059669 !important;
-                box-shadow: 0 4px 14px rgba(6, 95, 70, 0.1) !important;
             }
 
             /* Sleek Card Styling */

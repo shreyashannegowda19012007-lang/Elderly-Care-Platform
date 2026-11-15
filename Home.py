@@ -14,7 +14,7 @@ st.set_page_config(
     page_title="GoldenCare | Compassionate Healthcare Platform",
     page_icon=None,
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # Initialize database and tables
