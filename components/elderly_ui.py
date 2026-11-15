@@ -1,6 +1,6 @@
 """
 Accessible UI components tailored specifically for elderly users.
-Features high contrast, 24px+ typography, visual pill indicators,
+Features high contrast, 28px+ typography, visual pill indicators,
 audio readouts, and zero-confusion single-tap dose confirmation.
 """
 
@@ -28,7 +28,7 @@ def render_elderly_dose_card(
     dosage = dose["dosage"]
     scheduled_time = dose["scheduled_time"]
     time_of_day = dose["time_of_day"]
-    instructions = dose.get("instructions") or "Take with water."
+    instructions = dose.get("instructions") or "Take with a glass of water."
     pill_color = dose.get("pill_color") or "#2563EB"
     pill_shape = dose.get("pill_shape") or "Tablet"
     taken_at = dose.get("taken_at")
@@ -44,25 +44,53 @@ def render_elderly_dose_card(
     except Exception:
         time_formatted = scheduled_time
 
+    # Realistic visual pill representation
+    if pill_shape.lower() == "capsule":
+        pill_visual = f"""
+            <div style="
+                display: inline-block;
+                width: 38px;
+                height: 18px;
+                border-radius: 9999px;
+                background: linear-gradient(90deg, {pill_color} 50%, #FFFFFF 50%);
+                border: 2px solid rgba(0,0,0,0.15);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                vertical-align: middle;
+            "></div>
+        """
+    else:
+        pill_visual = f"""
+            <div style="
+                display: inline-block;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: {pill_color};
+                border: 2px solid rgba(0,0,0,0.15);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                vertical-align: middle;
+            "></div>
+        """
+
     # Card background and border based on status
     if status == "TAKEN":
-        card_bg = "linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
+        card_bg = "linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
         border_color = "#10B981"
-        badge_text = f"TAKEN" + (f" ({str(taken_at)[11:16]})" if taken_at else "")
+        badge_text = "TAKEN" + (f" ({str(taken_at)[11:16]})" if taken_at else "")
         badge_bg = "linear-gradient(135deg, #10B981 0%, #059669 100%)"
         accent_color = "#047857"
     elif status == "MISSED":
-        card_bg = "linear-gradient(135deg, #FEF2F2 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
+        card_bg = "linear-gradient(180deg, #FEF2F2 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
         border_color = "#EF4444"
         badge_text = "OVERDUE"
         badge_bg = "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
         accent_color = "#B91C1C"
     else:  # PENDING
-        card_bg = "linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
-        border_color = "#3B82F6"
+        card_bg = "linear-gradient(180deg, #F0F9FF 0%, #FFFFFF 100%)" if not high_contrast else "#FFFFFF"
+        border_color = "#0284C7"
         badge_text = "SCHEDULED"
-        badge_bg = "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
-        accent_color = "#1D4ED8"
+        badge_bg = "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)"
+        accent_color = "#0369A1"
 
     with st.container():
         # Accessible outer container
@@ -70,34 +98,20 @@ def render_elderly_dose_card(
             <div style="
                 background: {card_bg};
                 border: 2.5px solid {border_color};
-                border-radius: 20px;
-                padding: 24px;
+                border-radius: 22px;
+                padding: 24px 26px;
                 margin-bottom: 20px;
-                box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+                box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.06);
                 position: relative;
             ">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="
-                            width: 32px;
-                            height: 32px;
-                            border-radius: 8px;
-                            background: {pill_color};
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: white;
-                            font-size: 13px;
-                            font-weight: 800;
-                            border: 2px solid white;
-                            letter-spacing: 0.5px;
-                        ">Rx</div>
+                        {pill_visual}
                         <div>
-                            <span style="font-size: 15px; font-weight: 800; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.05em;">
+                            <span style="font-size: 16px; font-weight: 800; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.04em;">
                                 {time_of_day} &bull; {time_formatted}
                             </span>
-                            <span style="font-size: 13px; color: #64748B; font-weight: 600; margin-left: 6px;">({pill_shape})</span>
+                            <span style="font-size: 13.5px; color: #64748B; font-weight: 600; margin-left: 6px;">({pill_shape})</span>
                         </div>
                     </div>
                     <span style="
@@ -106,24 +120,24 @@ def render_elderly_dose_card(
                         font-weight: 800;
                         padding: 6px 16px;
                         border-radius: 9999px;
-                        font-size: 14px;
-                        letter-spacing: 0.05em;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        font-size: 13.5px;
+                        letter-spacing: 0.04em;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     ">
                         {badge_text}
                     </span>
                 </div>
-                <div style="font-size: 28px; font-weight: 800; color: #0F172A; margin-bottom: 10px; font-family: 'Outfit', sans-serif;">
+                <div style="font-size: 30px; font-weight: 800; color: #0F172A; margin-bottom: 8px; font-family: 'Outfit', sans-serif;">
                     {name} <span style="font-size: 20px; font-weight: 600; color: #64748B;">({dosage})</span>
                 </div>
-                <div style="font-size: 16px; color: #334155; line-height: 1.5; background: rgba(241, 245, 249, 0.8); border: 1px solid #E2E8F0; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;">
-                    <span style="font-weight: 700; color: #1E293B;">Directions:</span> {instructions}
+                <div style="font-size: 16.5px; color: #1E293B; line-height: 1.5; background: rgba(241, 245, 249, 0.85); border: 1.5px solid #E2E8F0; padding: 12px 18px; border-radius: 14px; margin-bottom: 6px;">
+                    <strong style="color: #0F172A;">Directions:</strong> {instructions}
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
         # Action Buttons Row with unique keys via key_prefix
-        col_btn1, col_btn2 = st.columns([2.5, 1.2])
+        col_btn1, col_btn2 = st.columns([2.6, 1.4])
 
         with col_btn1:
             if status != "TAKEN":
@@ -153,38 +167,39 @@ def render_elderly_sos_widget(patient: Dict[str, Any]) -> None:
 
     st.markdown(f"""
         <div style="
-            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            background: linear-gradient(180deg, #FEF2F2 0%, #FFFFFF 100%);
             border: 3px solid #DC2626;
-            border-radius: 20px;
-            padding: 28px;
-            margin-top: 36px;
-            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.15);
+            border-radius: 22px;
+            padding: 26px;
+            margin-top: 32px;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.12);
         ">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
                     <div style="
-                        width: 44px;
-                        height: 44px;
+                        width: 48px;
+                        height: 48px;
                         background: #DC2626;
                         color: white;
-                        border-radius: 10px;
+                        border-radius: 14px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         font-size: 16px;
                         font-weight: 800;
                         letter-spacing: 0.5px;
+                        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
                     ">SOS</div>
                     <div>
-                        <h2 style="color: #991B1B; margin: 0; font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif;">Need Immediate Help?</h2>
-                        <span style="font-size: 15px; color: #7F1D1D; font-weight: 600;">One-tap emergency broadcast to your family and primary clinic</span>
+                        <h2 style="color: #991B1B; margin: 0; font-size: 24px; font-weight: 800; font-family: 'Outfit', sans-serif;">Need Immediate Help?</h2>
+                        <span style="font-size: 14.5px; color: #7F1D1D; font-weight: 600;">One-tap emergency broadcast to your family and primary clinic</span>
                     </div>
                 </div>
-                <div style="background: white; border: 1.5px solid #FCA5A5; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; color: #991B1B;">
+                <div style="background: white; border: 1.5px solid #FCA5A5; padding: 6px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 700; color: #991B1B;">
                     Priority Contact: {ec_name} &bull; {ec_phone}
                 </div>
             </div>
-            <p style="font-size: 16px; color: #7F1D1D; margin: 0 0 16px 0; line-height: 1.5;">
+            <p style="font-size: 15.5px; color: #7F1D1D; margin: 0 0 16px 0; line-height: 1.5;">
                 Press the button below. Your status and emergency notification will be dispatched via automated alert systems and priority email.
             </p>
         </div>

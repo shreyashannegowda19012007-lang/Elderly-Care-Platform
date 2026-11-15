@@ -36,45 +36,43 @@ def render_app_header() -> None:
             except Exception:
                 pass
 
-    col_title, col_actions = st.columns([2.2, 1.8])
+    col_title, col_actions = st.columns([2.3, 1.7])
 
     with col_title:
         st.markdown("""
-            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 6px;">
                 <div style="
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 12px;
-                    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 14px;
+                    background: linear-gradient(135deg, #059669 0%, #047857 100%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-                    font-size: 16px;
-                    font-weight: 800;
-                    color: white;
-                    letter-spacing: -0.05em;
+                    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
                 ">
-                    GC
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v20M2 12h20"/>
+                    </svg>
                 </div>
                 <div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <h2 style="margin: 0; color: #0F172A; font-weight: 800; font-size: 26px; line-height: 1.1;">GoldenCare</h2>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2 style="margin: 0; color: #0F172A; font-weight: 800; font-size: 26px; line-height: 1.1; letter-spacing: -0.03em;">GoldenCare</h2>
                         <span style="
                             background: #ECFDF5;
                             color: #065F46;
                             border: 1px solid #A7F3D0;
-                            padding: 2px 8px;
+                            padding: 3px 10px;
                             border-radius: 9999px;
                             font-size: 11px;
                             font-weight: 700;
                             text-transform: uppercase;
-                            letter-spacing: 0.05em;
-                        ">Clinical v2.4</span>
+                            letter-spacing: 0.04em;
+                        ">Family Healthcare</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
                         <span class="pulse-green"></span>
-                        <span style="font-size: 13px; color: #64748B; font-weight: 500;">Autonomous Care & Medication Synchronization</span>
+                        <span style="font-size: 13.5px; color: #64748B; font-weight: 500;">Connected Daily Care for Seniors & Caregivers</span>
                     </div>
                 </div>
             </div>
@@ -82,8 +80,8 @@ def render_app_header() -> None:
 
     with col_actions:
         if authenticated and role:
-            role_badge_bg = "linear-gradient(135deg, #10B981 0%, #059669 100%)" if role == "elderly" else "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)"
-            role_title = "Senior Patient" if role == "elderly" else "Caregiver / Family"
+            role_badge_bg = "linear-gradient(135deg, #059669 0%, #047857 100%)" if role == "elderly" else "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)"
+            role_title = "Senior Patient" if role == "elderly" else "Caregiver & Family"
 
             st.markdown(f"""
                 <div style="text-align: right; margin-bottom: 8px;">
@@ -119,18 +117,18 @@ def render_app_header() -> None:
             st.markdown("""
                 <div style="text-align: right; margin-bottom: 8px;">
                     <span style="
-                        background: #475569;
-                        color: white;
-                        padding: 6px 14px;
+                        background: #F1F5F9;
+                        color: #475569;
+                        border: 1px solid #CBD5E1;
+                        padding: 5px 14px;
                         border-radius: 9999px;
-                        font-size: 13px;
+                        font-size: 12.5px;
                         font-weight: 700;
                         display: inline-flex;
                         align-items: center;
                         gap: 6px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     ">
-                        Portal Locked (PIN Required)
+                        Select Profile to Begin (PIN Protected)
                     </span>
                 </div>
             """, unsafe_allow_html=True)
@@ -144,7 +142,7 @@ def render_app_header() -> None:
                     st.toast("EMERGENCY ALERT SENT")
                     st.error("Emergency Alert Dispatched!")
 
-    st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 10px 0 20px 0;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 1px; background: linear-gradient(90deg, #E2E8F0 0%, #CBD5E1 50%, #E2E8F0 100%); margin: 10px 0 22px 0;'></div>", unsafe_allow_html=True)
 
 
 def render_alert_banner(patient_id: int = 1) -> None:
@@ -154,10 +152,10 @@ def render_alert_banner(patient_id: int = 1) -> None:
         latest = summary["recent"][0] if summary["recent"] else None
         msg = latest["message"] if latest else "Critical alerts require attention."
         st.markdown(f"""
-            <div style="background-color: #FEF2F2; border-left: 5px solid #EF4444; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="background-color: #FEF2F2; border-left: 5px solid #EF4444; padding: 14px 18px; border-radius: 12px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);">
                 <div>
-                    <span style="color: #991B1B; font-weight: 700; font-size: 14px;">Active Clinical Alert: </span>
-                    <span style="color: #7F1D1D; font-size: 14px;">{msg}</span>
+                    <span style="color: #991B1B; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.03em;">Urgent Notice: </span>
+                    <span style="color: #7F1D1D; font-size: 14.5px; font-weight: 500;">{msg}</span>
                 </div>
             </div>
         """, unsafe_allow_html=True)
