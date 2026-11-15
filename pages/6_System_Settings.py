@@ -17,6 +17,7 @@ from db.database import (
     get_alerts,
     seed_initial_data,
     init_db,
+    reset_database,
     DB_PATH,
 )
 from components.header import render_app_header, render_alert_banner
@@ -64,12 +65,15 @@ with tab_sec:
             st.write(f"**Active PIN:** `{elderly_user['passcode']}`")
             new_eld_pin = st.text_input("Enter New 4-Digit Senior PIN", max_chars=8, key="input_new_eld_pin", placeholder="e.g., 1234")
             if st.button("Update Senior PIN", key="btn_update_eld_pin", type="primary"):
-                if new_eld_pin.strip():
-                    update_user_passcode(elderly_user["id"], new_eld_pin.strip())
-                    st.success(f"Senior PIN updated to '{new_eld_pin.strip()}'!")
-                    st.rerun()
-                else:
+                clean_pin = new_eld_pin.strip()
+                if not clean_pin:
                     st.error("PIN cannot be empty.")
+                elif not clean_pin.isdigit() or len(clean_pin) < 4:
+                    st.error("PIN must consist of at least 4 numeric digits.")
+                else:
+                    update_user_passcode(elderly_user["id"], clean_pin)
+                    st.success(f"Senior PIN updated to '{clean_pin}'!")
+                    st.rerun()
 
     with c_pin2:
         st.markdown("#### 🩺 Caregiver PIN")
@@ -78,24 +82,31 @@ with tab_sec:
             st.write(f"**Active PIN:** `{caretaker_user['passcode']}`")
             new_car_pin = st.text_input("Enter New 4-Digit Caregiver PIN", max_chars=8, key="input_new_car_pin", placeholder="e.g., 8888")
             if st.button("Update Caregiver PIN", key="btn_update_car_pin", type="primary"):
-                if new_car_pin.strip():
-                    update_user_passcode(caretaker_user["id"], new_car_pin.strip())
-                    st.success(f"Caregiver PIN updated to '{new_car_pin.strip()}'!")
-                    st.rerun()
-                else:
+                clean_pin = new_car_pin.strip()
+                if not clean_pin:
                     st.error("PIN cannot be empty.")
+                elif not clean_pin.isdigit() or len(clean_pin) < 4:
+                    st.error("PIN must consist of at least 4 numeric digits.")
+                else:
+                    update_user_passcode(caretaker_user["id"], clean_pin)
+                    st.success(f"Caregiver PIN updated to '{clean_pin}'!")
+                    st.rerun()
 
 # 2. SMTP Alert Configuration
 with tab_smtp:
-    st.subheader("Proactive SMTP Email Gateway")
-    st.caption("GoldenCare connects directly to standard SMTP servers (Gmail, SendGrid, Amazon SES, Outlook) over TLS.")
+    st.subheader("Google Services & Proactive Email Alert Gateway")
+    st.caption("GoldenCare connects directly to Google Mail (Gmail SMTP over TLS) or Google Cloud services for autonomous caregiver escalation.")
 
+    from utils.google_services import get_google_services_health
+    g_health = get_google_services_health()
     smtp_cfg = get_smtp_config()
 
     if smtp_cfg["is_configured"]:
-        st.success(f"🟢 **Live SMTP Active**: Connected to `{smtp_cfg['server']}:{smtp_cfg['port']}` as `{smtp_cfg['username']}`.")
+        st.success(f"🟢 **Live Google Mail / SMTP Active**: Connected to `{smtp_cfg['server']}:{smtp_cfg['port']}` as `{smtp_cfg['username']}`.")
     else:
-        st.warning("🟡 **Sandbox Audit Mode Active**: SMTP credentials not found in secrets or environment. Alerts are safely written to SQLite audit logs without crashing.")
+        st.warning("🟡 **Sandbox Audit Mode Active**: Google Mail / SMTP credentials not found in secrets or environment. Alerts are safely written to SQLite audit logs without crashing.")
+
+    st.markdown(f"**Integration Channel:** `{g_health['service']}` ({g_health['server']}) • **Status:** {g_health['status_label']}")
 
     st.markdown("#### Test Live Alert Dispatch")
     col_tmail, col_tbtn = st.columns([2, 1])
@@ -175,10 +186,7 @@ with tab_maint:
     if st.button("🔄 Reset & Reseed Database to Fresh Demo State", type="secondary"):
         with st.spinner("Reinitializing tables and inserting fresh 14-day clinical records..."):
             try:
-                if os.path.exists(DB_PATH):
-                    os.remove(DB_PATH)
-                init_db()
-                seed_initial_data()
+                reset_database()
                 st.success("Database cleanly reseeded with 14-day history, Eleanor Vance, Sarah Vance, and complete schedules!")
                 st.rerun()
             except Exception as e:

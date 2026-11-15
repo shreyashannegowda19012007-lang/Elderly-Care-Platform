@@ -21,14 +21,113 @@ DEFAULT_DB_PATH = os.path.join(DEFAULT_DB_DIR, "carecompanion.db")
 DB_PATH = os.environ.get("DATABASE_PATH", DEFAULT_DB_PATH)
 
 
+class DatabaseConnectionManager:
+    """
+    Cached connection pool manager ensuring WAL mode, foreign keys,
+    and robust thread-safe connection pooling for Streamlit.
+    """
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._ensure_init()
+
+    def _ensure_init(self) -> None:
+        db_dir = os.path.dirname(os.path.abspath(self.db_path))
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        try:
+            with sqlite3.connect(self.db_path, timeout=30.0, check_same_thread=False) as conn:
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute("PRAGMA foreign_keys=ON;")
+                conn.commit()
+        except Exception:
+            pass
+
+    @contextmanager
+    def get_connection(self):
+        conn = sqlite3.connect(self.db_path, timeout=30.0, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        try:
+            conn.execute("PRAGMA journal_mode=WAL;")
+            conn.execute("PRAGMA foreign_keys=ON;")
+            yield conn
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+
 @st.cache_resource(ttl=3600)
-def get_db_pool_manager() -> Dict[str, Any]:
+def get_db_pool_manager(db_path: Optional[str] = None) -> DatabaseConnectionManager:
     """
     Cached database resource manager using st.cache_resource.
     Ensures single-instance connection configuration and prevent memory leaks.
     """
-    ensure_db_dir()
-    return {"db_path": DB_PATH, "status": "active", "engine": "sqlite3_wal"}
+    path = db_path or DB_PATH
+    return DatabaseConnectionManager(path)
+
+
+def invalidate_analytics_cache() -> None:
+    """Invalidate all cached Streamlit data computations upon database writes."""
+    try:
+        import streamlit as st
+        st.cache_data.clear()
+    except Exception:
+        pass
+
+
+def _current_today_str() -> str:
+    """Return timezone-aware today string, falling back to local date."""
+    try:
+        from utils.timezone_util import get_today_str
+        return get_today_str()
+    except Exception:
+        return date.today().isoformat()
+
+
+def _current_today_date() -> date:
+    """Return timezone-aware today date, falling back to local date."""
+    try:
+        from utils.timezone_util import get_today_date
+        return get_today_date()
+    except Exception:
+        return date.today()
+
+
+def reset_database() -> bool:
+    """
+    Safely reset and reseed the database to fresh initial demo state.
+    Drops existing tables within an active SQLite connection without deleting
+    the file on disk, avoiding Windows file-locking PermissionErrors (WinError 32).
+    Clears Streamlit resource and data caches upon completion.
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA foreign_keys = OFF;")
+        tables = [
+            "alert_logs",
+            "vitals_logs",
+            "appointments",
+            "adherence_logs",
+            "drug_interactions",
+            "medications",
+            "users",
+        ]
+        for table in tables:
+            cursor.execute(f"DROP TABLE IF EXISTS {table};")
+        cursor.execute("PRAGMA foreign_keys = ON;")
+        conn.commit()
+
+    init_db()
+    seed_initial_data()
+    invalidate_analytics_cache()
+    try:
+        import streamlit as st
+        st.cache_resource.clear()
+    except Exception:
+        pass
+    return True
 
 
 def ensure_db_dir() -> None:
@@ -39,24 +138,15 @@ def ensure_db_dir() -> None:
 
 
 @contextmanager
-def get_db_connection():
+def get_db_connection(db_path: Optional[str] = None):
     """
-    Context manager for SQLite database connections.
+    Context manager for SQLite database connections using cached pool manager.
     Enables WAL mode and foreign key constraints for robust concurrency.
     """
-    ensure_db_dir()
-    conn = sqlite3.connect(DB_PATH, timeout=15.0, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    try:
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA foreign_keys=ON;")
+    path = db_path or DB_PATH
+    manager = get_db_pool_manager(path)
+    with manager.get_connection() as conn:
         yield conn
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        conn.close()
 
 
 def init_db() -> None:
@@ -386,8 +476,12 @@ def verify_user_passcode(role: str, passcode: Any) -> Optional[Dict[str, Any]]:
         rows = cursor.fetchall()
         for row in rows:
             expected_pin = str(row["passcode"]).strip() if row["passcode"] is not None else ""
-            if hmac.compare_digest(provided_pin, expected_pin):
-                return dict(row)
+            try:
+                if hmac.compare_digest(provided_pin.encode("utf-8"), expected_pin.encode("utf-8")):
+                    return dict(row)
+            except Exception:
+                if provided_pin == expected_pin:
+                    return dict(row)
         return None
 
 
@@ -439,6 +533,21 @@ def add_medication(
     refill_threshold: int = 5,
 ) -> int:
     """Insert a new medication schedule and create today's adherence log entry."""
+    clean_name = str(name).strip() if name else ""
+    if not clean_name:
+        raise ValueError("Medication name cannot be empty.")
+    clean_dosage = str(dosage).strip() if dosage else ""
+    if not clean_dosage:
+        raise ValueError("Medication dosage cannot be empty.")
+    if clean_dosage.startswith("-") or any(part.startswith("-") for part in clean_dosage.split()):
+        raise ValueError("Medication dosage cannot be negative.")
+    if stock_remaining < 0:
+        raise ValueError("Stock remaining cannot be negative.")
+    if refill_threshold < 0:
+        raise ValueError("Refill threshold cannot be negative.")
+
+    clean_time = str(scheduled_time).strip() if scheduled_time else "08:00"
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -447,20 +556,21 @@ def add_medication(
                 pill_color, pill_shape, instructions, stock_remaining, refill_threshold, is_active
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1);
         """, (
-            patient_id, name.strip(), dosage.strip(), frequency.strip(),
-            time_of_day.strip(), scheduled_time.strip(), pill_color,
-            pill_shape, instructions.strip(), stock_remaining, refill_threshold
+            patient_id, clean_name, clean_dosage, frequency.strip(),
+            time_of_day.strip(), clean_time, pill_color,
+            pill_shape, instructions.strip() if instructions else "", stock_remaining, refill_threshold
         ))
         med_id = cursor.lastrowid
 
         # Automatically insert today's pending slot
-        today_str = date.today().isoformat()
+        today_str = _current_today_str()
         cursor.execute("""
             INSERT OR IGNORE INTO adherence_logs (
                 medication_id, patient_id, scheduled_date, scheduled_time, status, notes, recorded_by
             ) VALUES (?, ?, ?, ?, 'PENDING', 'Newly scheduled', 'system');
-        """, (med_id, patient_id, today_str, scheduled_time.strip()))
+        """, (med_id, patient_id, today_str, clean_time))
 
+        invalidate_analytics_cache()
         return med_id
 
 
@@ -479,6 +589,19 @@ def update_medication(
     is_active: int = 1,
 ) -> bool:
     """Update existing medication specifications."""
+    clean_name = str(name).strip() if name else ""
+    if not clean_name:
+        raise ValueError("Medication name cannot be empty.")
+    clean_dosage = str(dosage).strip() if dosage else ""
+    if not clean_dosage:
+        raise ValueError("Medication dosage cannot be empty.")
+    if clean_dosage.startswith("-") or any(part.startswith("-") for part in clean_dosage.split()):
+        raise ValueError("Medication dosage cannot be negative.")
+    if stock_remaining < 0:
+        raise ValueError("Stock remaining cannot be negative.")
+    if refill_threshold < 0:
+        raise ValueError("Refill threshold cannot be negative.")
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -489,10 +612,11 @@ def update_medication(
                 is_active = ?
             WHERE id = ?;
         """, (
-            name.strip(), dosage.strip(), frequency.strip(), time_of_day.strip(),
-            scheduled_time.strip(), pill_color, pill_shape, instructions.strip(),
+            clean_name, clean_dosage, frequency.strip(), time_of_day.strip(),
+            scheduled_time.strip(), pill_color, pill_shape, instructions.strip() if instructions else "",
             stock_remaining, refill_threshold, is_active, med_id
         ))
+        invalidate_analytics_cache()
         return cursor.rowcount > 0
 
 
@@ -501,6 +625,7 @@ def delete_medication(med_id: int) -> bool:
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM medications WHERE id = ?;", (med_id,))
+        invalidate_analytics_cache()
         return cursor.rowcount > 0
 
 
@@ -513,7 +638,7 @@ def get_todays_doses(patient_id: int, date_str: Optional[str] = None) -> List[Di
     a corresponding log entry.
     """
     if not date_str:
-        date_str = date.today().isoformat()
+        date_str = _current_today_str()
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -606,6 +731,7 @@ def mark_dose_status(
             elif prev_status == "TAKEN" and norm_status != "TAKEN":
                 cursor.execute("UPDATE medications SET stock_remaining = stock_remaining + 1 WHERE id = ?;", (med_id,))
 
+            invalidate_analytics_cache()
             return True
     except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError):
         return False
@@ -692,6 +818,7 @@ def log_adherence(
             elif prev_status == "TAKEN" and norm_status != "TAKEN":
                 cursor.execute("UPDATE medications SET stock_remaining = stock_remaining + 1 WHERE id = ?;", (medication_id,))
 
+            invalidate_analytics_cache()
             return True
     except (sqlite3.IntegrityError, sqlite3.OperationalError, sqlite3.DatabaseError):
         return False
@@ -710,7 +837,7 @@ def reconcile_past_doses(patient_id: Optional[int] = None) -> int:
     is automatically transitioned to 'MISSED' status.
     Returns the count of updated doses.
     """
-    today_str = date.today().isoformat()
+    today_str = _current_today_str()
     with get_db_connection() as conn:
         cursor = conn.cursor()
         if patient_id:
@@ -727,13 +854,17 @@ def reconcile_past_doses(patient_id: Optional[int] = None) -> int:
                     notes = 'Auto-escalation: past unconfirmed dose'
                 WHERE scheduled_date < ? AND status = 'PENDING';
             """, (today_str,))
-        return cursor.rowcount
+        updated_count = cursor.rowcount
+        if updated_count > 0:
+            invalidate_analytics_cache()
+        return updated_count
 
 
 def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any]]:
     """Retrieve adherence records for the past N days."""
     reconcile_past_doses(patient_id)
-    start_date = (date.today() - timedelta(days=days)).isoformat()
+    today_d = _current_today_date()
+    start_date = (today_d - timedelta(days=days)).isoformat()
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -761,7 +892,9 @@ def get_adherence_history(patient_id: int, days: int = 14) -> List[Dict[str, Any
 def get_adherence_stats(patient_id: int, days: int = 7) -> Dict[str, Any]:
     """Calculate adherence metrics: total scheduled, taken, missed, percentage, streak."""
     reconcile_past_doses(patient_id)
-    start_date = (date.today() - timedelta(days=days)).isoformat()
+    today_d = _current_today_date()
+    start_date = (today_d - timedelta(days=days)).isoformat()
+    today_str = today_d.isoformat()
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -795,7 +928,7 @@ def get_adherence_stats(patient_id: int, days: int = 7) -> Dict[str, Any]:
             GROUP BY scheduled_date
             ORDER BY scheduled_date DESC
             LIMIT 30;
-        """, (patient_id, date.today().isoformat()))
+        """, (patient_id, today_str))
 
         daily_rows = cursor.fetchall()
         streak = 0
@@ -872,8 +1005,28 @@ def add_appointment(
     appointment_time: str,
     transport_required: bool = False,
     prep_notes: str = "",
+    allow_past: bool = True,
 ) -> int:
-    """Insert a new clinical appointment."""
+    """Insert a new clinical appointment with validation."""
+    clean_title = str(title).strip() if title else ""
+    if not clean_title:
+        raise ValueError("Appointment title cannot be empty.")
+    clean_doc = str(doctor_name).strip() if doctor_name else ""
+    if not clean_doc:
+        raise ValueError("Physician / doctor name cannot be empty.")
+    clean_addr = str(clinic_address).strip() if clinic_address else ""
+    if not clean_addr:
+        raise ValueError("Clinic address cannot be empty.")
+
+    clean_date = str(appointment_date).strip()
+    try:
+        parsed_d = datetime.strptime(clean_date, "%Y-%m-%d").date()
+    except Exception:
+        raise ValueError(f"Invalid appointment date format '{clean_date}'. Expected format: YYYY-MM-DD.")
+
+    if not allow_past and parsed_d < date.today():
+        raise ValueError(f"Appointment date '{clean_date}' cannot be scheduled in the past.")
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -882,18 +1035,23 @@ def add_appointment(
                 appointment_date, appointment_time, transport_required, prep_notes, status
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'SCHEDULED');
         """, (
-            patient_id, title.strip(), doctor_name.strip(), clinic_address.strip(),
-            appointment_date.strip(), appointment_time.strip(), 1 if transport_required else 0,
-            prep_notes.strip()
+            patient_id, clean_title, clean_doc, clean_addr,
+            clean_date, str(appointment_time).strip(), 1 if transport_required else 0,
+            str(prep_notes).strip() if prep_notes else ""
         ))
+        invalidate_analytics_cache()
         return cursor.lastrowid
 
 
 def update_appointment_status(appointment_id: int, status: str) -> bool:
     """Update status of appointment (SCHEDULED, COMPLETED, CANCELLED)."""
+    norm_status = str(status).upper().strip()
+    if norm_status not in ("SCHEDULED", "COMPLETED", "CANCELLED"):
+        return False
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("UPDATE appointments SET status = ? WHERE id = ?;", (status, appointment_id))
+        cursor.execute("UPDATE appointments SET status = ? WHERE id = ?;", (norm_status, appointment_id))
+        invalidate_analytics_cache()
         return cursor.rowcount > 0
 
 
@@ -928,20 +1086,40 @@ def add_vitals(
     Log a set of vital signs and flag if abnormal.
     Abnormal criteria: Systolic > 140 or < 90, Diastolic > 90, Glucose > 140 or < 70, Pulse > 100 or < 55.
     If abnormal, automatically registers an alert entry in alert_logs.
+    Validates physiological plausibility to prevent corrupted clinical logs.
     """
+    if systolic_bp is not None:
+        if not (50 <= int(systolic_bp) <= 300):
+            raise ValueError(f"Systolic BP {systolic_bp} mmHg is outside physiologically possible range (50-300 mmHg).")
+    if diastolic_bp is not None:
+        if not (30 <= int(diastolic_bp) <= 200):
+            raise ValueError(f"Diastolic BP {diastolic_bp} mmHg is outside physiologically possible range (30-200 mmHg).")
+    if systolic_bp is not None and diastolic_bp is not None:
+        if int(systolic_bp) <= int(diastolic_bp):
+            raise ValueError(f"Systolic BP ({systolic_bp}) must be strictly higher than Diastolic BP ({diastolic_bp}).")
+    if blood_glucose is not None:
+        if not (20.0 <= float(blood_glucose) <= 600.0):
+            raise ValueError(f"Blood glucose {blood_glucose} mg/dL is outside physiologically possible range (20-600 mg/dL).")
+    if heart_rate is not None:
+        if not (30 <= int(heart_rate) <= 250):
+            raise ValueError(f"Heart rate {heart_rate} BPM is outside physiologically possible range (30-250 BPM).")
+    if weight_kg is not None:
+        if not (10.0 <= float(weight_kg) <= 400.0):
+            raise ValueError(f"Weight {weight_kg} kg is outside physiologically possible range (10-400 kg).")
+
     is_abnormal = 0
     abnormal_reasons = []
 
-    if systolic_bp and (systolic_bp > 140 or systolic_bp < 90):
+    if systolic_bp and (int(systolic_bp) > 140 or int(systolic_bp) < 90):
         is_abnormal = 1
         abnormal_reasons.append(f"Systolic BP {systolic_bp} mmHg")
-    if diastolic_bp and (diastolic_bp > 90 or diastolic_bp < 60):
+    if diastolic_bp and (int(diastolic_bp) > 90 or int(diastolic_bp) < 60):
         is_abnormal = 1
         abnormal_reasons.append(f"Diastolic BP {diastolic_bp} mmHg")
-    if blood_glucose and (blood_glucose > 140.0 or blood_glucose < 70.0):
+    if blood_glucose and (float(blood_glucose) > 140.0 or float(blood_glucose) < 70.0):
         is_abnormal = 1
         abnormal_reasons.append(f"Blood Glucose {blood_glucose} mg/dL")
-    if heart_rate and (heart_rate > 100 or heart_rate < 55):
+    if heart_rate and (int(heart_rate) > 100 or int(heart_rate) < 55):
         is_abnormal = 1
         abnormal_reasons.append(f"Heart Rate {heart_rate} BPM")
 
@@ -954,7 +1132,7 @@ def add_vitals(
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (
             patient_id, recorded_date, recorded_time, systolic_bp, diastolic_bp,
-            blood_glucose, heart_rate, weight_kg, mood, notes.strip(), is_abnormal
+            blood_glucose, heart_rate, weight_kg, mood, str(notes).strip() if notes else "", is_abnormal
         ))
         vitals_id = cursor.lastrowid
 
@@ -973,6 +1151,7 @@ def add_vitals(
                 ) VALUES (?, NULL, 'ABNORMAL_VITALS', 'WARNING', ?, ?, 'LOGGED');
             """, (patient_id, alert_msg, c_email))
 
+        invalidate_analytics_cache()
         return vitals_id
 
 
@@ -1000,14 +1179,29 @@ def get_alerts(patient_id: Optional[int] = None, limit: int = 50) -> List[Dict[s
 
 def add_alert(
     patient_id: int,
-    medication_id: Optional[int],
-    alert_type: str,
-    severity: str,
-    message: str,
-    recipient_email: Optional[str],
+    medication_id: Optional[int] = None,
+    alert_type: str = "NOTIFICATION",
+    severity: str = "INFO",
+    message: str = "",
+    recipient_email: Optional[str] = None,
     delivery_status: str = "SENT",
 ) -> int:
-    """Record an alert log entry."""
+    """
+    Record an alert log entry in the persistent audit log.
+    Normalizes severity to ('INFO', 'WARNING', 'CRITICAL') to satisfy SQLite schema CHECK constraints.
+    """
+    s_upper = str(severity).upper().strip() if severity else "INFO"
+    if s_upper in ("HIGH", "CRITICAL", "EMERGENCY"):
+        norm_severity = "CRITICAL"
+    elif s_upper in ("MEDIUM", "MODERATE", "WARN", "WARNING"):
+        norm_severity = "WARNING"
+    else:
+        norm_severity = "INFO"
+
+    d_upper = str(delivery_status).upper().strip() if delivery_status else "LOGGED"
+    if d_upper not in ("SENT", "LOGGED", "FAILED"):
+        d_upper = "LOGGED"
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -1015,7 +1209,16 @@ def add_alert(
                 patient_id, medication_id, alert_type, severity,
                 message, recipient_email, delivery_status
             ) VALUES (?, ?, ?, ?, ?, ?, ?);
-        """, (patient_id, medication_id, alert_type, severity, message, recipient_email, delivery_status))
+        """, (
+            patient_id,
+            medication_id,
+            str(alert_type).strip() if alert_type else "NOTIFICATION",
+            norm_severity,
+            str(message).strip() if message else "System Alert",
+            str(recipient_email).strip() if recipient_email else None,
+            d_upper,
+        ))
+        invalidate_analytics_cache()
         return cursor.lastrowid
 
 

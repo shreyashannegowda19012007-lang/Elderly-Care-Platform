@@ -16,6 +16,7 @@ from .database import (
     init_db,
     seed_initial_data,
     reconcile_past_doses,
+    reset_database,
 )
 
 # 2. Domain Models & TypedDicts
@@ -76,6 +77,7 @@ __all__ = [
     "init_db",
     "seed_initial_data",
     "reconcile_past_doses",
+    "reset_database",
     # Models
     "User",
     "Medication",

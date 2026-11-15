@@ -75,23 +75,27 @@ with tab_list:
 
                 with c3:
                     st.markdown("#### Quick Actions")
-                    new_stock = st.number_input("Update Stock", min_value=0, max_value=500, value=m["stock_remaining"], key=f"stock_edit_{m_id}")
+                    safe_stock = max(0, min(500, int(m["stock_remaining"] or 0)))
+                    new_stock = st.number_input("Update Stock", min_value=0, max_value=500, value=safe_stock, key=f"stock_edit_{m_id}")
                     if st.button("Save Stock Count", key=f"btn_save_stock_{m_id}", use_container_width=True):
-                        update_medication(
-                            med_id=m_id,
-                            name=m["name"],
-                            dosage=m["dosage"],
-                            frequency=m["frequency"],
-                            time_of_day=m["time_of_day"],
-                            scheduled_time=m["scheduled_time"],
-                            pill_color=m["pill_color"],
-                            pill_shape=m["pill_shape"],
-                            instructions=m["instructions"],
-                            stock_remaining=new_stock,
-                            refill_threshold=m["refill_threshold"],
-                        )
-                        st.success("Stock updated!")
-                        st.rerun()
+                        try:
+                            update_medication(
+                                med_id=m_id,
+                                name=m["name"],
+                                dosage=m["dosage"],
+                                frequency=m["frequency"],
+                                time_of_day=m["time_of_day"],
+                                scheduled_time=m["scheduled_time"],
+                                pill_color=m["pill_color"],
+                                pill_shape=m["pill_shape"],
+                                instructions=m["instructions"],
+                                stock_remaining=new_stock,
+                                refill_threshold=m["refill_threshold"],
+                            )
+                            st.success("Stock updated!")
+                            st.rerun()
+                        except ValueError as ve:
+                            st.error(str(ve))
 
                     if st.button("🗑️ Remove Prescription", key=f"btn_del_{m_id}", use_container_width=True, type="secondary"):
                         delete_medication(m_id)
@@ -133,8 +137,11 @@ with tab_add:
 
     # Real-Time Safety Analysis when form submitted or medication name entered
     if submit_btn:
-        if not med_name or not med_dosage:
+        clean_d_str = med_dosage.strip() if med_dosage else ""
+        if not med_name or not clean_d_str:
             st.error("Please provide both Medication Name and Dosage Strength.")
+        elif clean_d_str.startswith("-") or any(part.startswith("-") for part in clean_d_str.split()):
+            st.error("Medication dosage cannot be negative.")
         else:
             # Check for Drug Interactions against current active medications
             existing_meds = get_medications(patient_id, active_only=True)
@@ -161,7 +168,7 @@ with tab_add:
                     patient_id=patient_id,
                     alert_type="CONTRAINDICATION_BLOCKED",
                     message=f"Prescription of {med_name} blocked due to high-risk interaction with existing regimen ({', '.join(i['drug_2'] for i in high_risk_interactions)}).",
-                    severity="HIGH"
+                    severity="CRITICAL",
                 )
             else:
                 if interactions:
@@ -172,27 +179,30 @@ with tab_add:
                             patient_id=patient_id,
                             alert_type="CONTRAINDICATION_OVERRIDDEN",
                             message=f"Prescription of {med_name} added under physician override despite interaction warnings.",
-                            severity="MEDIUM"
+                            severity="WARNING",
                         )
 
                 # Add to database
                 time_str = med_time.strftime("%H:%M")
-                new_id = add_medication(
-                    patient_id=patient_id,
-                    name=med_name,
-                    dosage=med_dosage,
-                    frequency=med_frequency,
-                    time_of_day=med_tod,
-                    scheduled_time=time_str,
-                    pill_color=med_color,
-                    pill_shape=med_shape,
-                    instructions=med_instructions,
-                    stock_remaining=med_stock,
-                    refill_threshold=med_refill,
-                )
-                st.toast(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!", icon="💊")
-                st.success(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!")
-                st.rerun()
+                try:
+                    new_id = add_medication(
+                        patient_id=patient_id,
+                        name=med_name,
+                        dosage=med_dosage,
+                        frequency=med_frequency,
+                        time_of_day=med_tod,
+                        scheduled_time=time_str,
+                        pill_color=med_color,
+                        pill_shape=med_shape,
+                        instructions=med_instructions,
+                        stock_remaining=med_stock,
+                        refill_threshold=med_refill,
+                    )
+                    st.toast(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!", icon="💊")
+                    st.success(f"✅ Successfully scheduled {med_name} ({med_dosage}) at {time_str}!")
+                    st.rerun()
+                except ValueError as ve:
+                    st.error(f"Cannot schedule medication: {str(ve)}")
 
 # 3. Drug Interaction Safety Matrix Tab
 with tab_interactions:

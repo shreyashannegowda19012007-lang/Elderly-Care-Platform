@@ -133,18 +133,25 @@ with tab_apts:
             if not apt_title or not apt_doc or not apt_address:
                 st.error("Please fill in the appointment title, physician, and location.")
             else:
-                add_appointment(
-                    patient_id=patient_id,
-                    title=apt_title,
-                    doctor_name=apt_doc,
-                    clinic_address=apt_address,
-                    appointment_date=apt_date_val.isoformat(),
-                    appointment_time=apt_time_val.strftime("%H:%M"),
-                    transport_required=apt_transport,
-                    prep_notes=apt_notes,
-                )
-                st.success(f"Appointment '{apt_title}' scheduled for {apt_date_val}!")
-                st.rerun()
+                try:
+                    if apt_date_val < date.today():
+                        st.error("Appointment date cannot be scheduled in the past.")
+                    else:
+                        add_appointment(
+                            patient_id=patient_id,
+                            title=apt_title,
+                            doctor_name=apt_doc,
+                            clinic_address=apt_address,
+                            appointment_date=apt_date_val.isoformat(),
+                            appointment_time=apt_time_val.strftime("%H:%M"),
+                            transport_required=apt_transport,
+                            prep_notes=apt_notes,
+                            allow_past=False,
+                        )
+                        st.success(f"Appointment '{apt_title}' scheduled for {apt_date_val}!")
+                        st.rerun()
+                except ValueError as ve:
+                    st.error(f"Cannot schedule appointment: {str(ve)}")
 
 # 2. Daily Health Vitals Telemetry Tab
 with tab_vitals:
@@ -184,25 +191,28 @@ with tab_vitals:
 
         if v_submit:
             now_dt = datetime.now()
-            v_id = add_vitals(
-                patient_id=patient_id,
-                recorded_date=now_dt.strftime("%Y-%m-%d"),
-                recorded_time=now_dt.strftime("%H:%M"),
-                systolic_bp=v_sys,
-                diastolic_bp=v_dia,
-                blood_glucose=v_glu,
-                heart_rate=v_hr,
-                weight_kg=v_wt,
-                mood=v_mood,
-                notes=v_notes,
-            )
+            try:
+                v_id = add_vitals(
+                    patient_id=patient_id,
+                    recorded_date=now_dt.strftime("%Y-%m-%d"),
+                    recorded_time=now_dt.strftime("%H:%M"),
+                    systolic_bp=v_sys,
+                    diastolic_bp=v_dia,
+                    blood_glucose=v_glu,
+                    heart_rate=v_hr,
+                    weight_kg=v_wt,
+                    mood=v_mood,
+                    notes=v_notes,
+                )
 
-            # Abnormality Callout
-            if v_sys > 140 or v_glu > 140 or v_hr > 100:
-                st.toast("⚠️ Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.", icon="⚠️")
-            else:
-                st.toast("✅ Vitals safely recorded within standard clinical reference ranges.", icon="🩺")
-            st.rerun()
+                # Abnormality Callout
+                if v_sys > 140 or v_glu > 140 or v_hr > 100:
+                    st.toast("⚠️ Reading registered as ABNORMAL: Elevated metric recorded. Notification logged.", icon="⚠️")
+                else:
+                    st.toast("✅ Vitals safely recorded within standard clinical reference ranges.", icon="🩺")
+                st.rerun()
+            except ValueError as ve:
+                st.error(f"Cannot record vitals: {str(ve)}")
 
     with col_v_hist:
         st.subheader("Recent Biometric Records")

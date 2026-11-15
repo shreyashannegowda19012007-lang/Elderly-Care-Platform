@@ -13,7 +13,7 @@ from typing import Dict, Any, List
 from db.database import get_adherence_history, get_adherence_stats, get_medications, get_vitals
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def compute_adherence_timeseries(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
     """
     Construct a daily time-series DataFrame of scheduled vs taken doses.
@@ -24,7 +24,10 @@ def compute_adherence_timeseries(patient_id: int = 1, days: int = 14) -> pd.Data
         return pd.DataFrame(columns=["date", "scheduled", "taken", "missed", "rate"])
 
     df = pd.DataFrame(history)
-    df["date"] = pd.to_datetime(df["scheduled_date"]).dt.date
+    df["date"] = pd.to_datetime(df["scheduled_date"], errors="coerce").dt.date
+    df = df.dropna(subset=["date"])
+    if df.empty:
+        return pd.DataFrame(columns=["date", "scheduled", "taken", "missed", "rate"])
 
     grouped = df.groupby("date").agg(
         total=("status", "count"),
@@ -42,6 +45,7 @@ def compute_adherence_timeseries(patient_id: int = 1, days: int = 14) -> pd.Data
     return grouped.sort_values("date")
 
 
+@st.cache_data(ttl=300)
 def compute_time_drift(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
     """
     Compute delay/early variance between scheduled time and actual taken_at time in minutes.
@@ -70,6 +74,7 @@ def compute_time_drift(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+@st.cache_data(ttl=300)
 def compute_time_of_day_breakdown(patient_id: int = 1, days: int = 14) -> pd.DataFrame:
     """
     Analyze adherence rates across Morning, Afternoon, Evening, and Bedtime slots.

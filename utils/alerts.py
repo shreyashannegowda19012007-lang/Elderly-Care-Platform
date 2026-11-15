@@ -27,54 +27,17 @@ from db.database import (
 )
 
 
+from utils.timezone_util import get_now, get_today_str
+from utils.google_services import send_google_mail
+
+
 def get_smtp_config() -> Dict[str, Any]:
     """
     Retrieve SMTP configuration from Streamlit secrets or OS environment.
     Falls back gracefully if unconfigured.
     """
-    server = ""
-    port = 587
-    use_tls = True
-    username = ""
-    password = ""
-    sender_name = "GoldenCare Alerts"
-    alert_recipient = "caretaker@example.com"
-
-    # Try Streamlit Secrets first
-    try:
-        if hasattr(st, "secrets") and "smtp" in st.secrets:
-            s = st.secrets["smtp"]
-            server = s.get("server", "")
-            port = int(s.get("port", 587))
-            use_tls = bool(s.get("use_tls", True))
-            username = s.get("username", "")
-            password = s.get("password", "")
-            sender_name = s.get("sender_name", "GoldenCare Alerts")
-            alert_recipient = s.get("alert_recipient", "caretaker@example.com")
-    except Exception:
-        pass
-
-    # Fallback to Environment variables
-    if not server:
-        server = os.environ.get("SMTP_SERVER", "")
-        port = int(os.environ.get("SMTP_PORT", 587))
-        use_tls = os.environ.get("SMTP_USE_TLS", "true").lower() in ("true", "1", "yes")
-        username = os.environ.get("SMTP_USERNAME", "")
-        password = os.environ.get("SMTP_PASSWORD", "")
-        sender_name = os.environ.get("ALERT_SENDER_NAME", "GoldenCare Alerts")
-        alert_recipient = os.environ.get("ALERT_EMAIL_RECIPIENT", "caretaker@example.com")
-
-    is_configured = bool(server and username and password)
-    return {
-        "server": server,
-        "port": port,
-        "use_tls": use_tls,
-        "username": username,
-        "password": password,
-        "sender_name": sender_name,
-        "alert_recipient": alert_recipient,
-        "is_configured": is_configured,
-    }
+    from utils.google_services import get_google_services_config
+    return get_google_services_config()
 
 
 def send_email_alert(
@@ -95,42 +58,22 @@ def send_email_alert(
     target_email = recipient_email or config["alert_recipient"]
 
     if config["is_configured"]:
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = f"[{severity}] {subject}"
-            msg["From"] = f"{config['sender_name']} <{config['username']}>"
-            msg["To"] = target_email
-
-            part = MIMEText(body_html, "html")
-            msg.attach(part)
-
-            with smtplib.SMTP(config["server"], config["port"], timeout=10) as s:
-                if config["use_tls"]:
-                    s.starttls()
-                s.login(config["username"], config["password"])
-                s.sendmail(config["username"], [target_email], msg.as_string())
-
-            add_alert(
-                patient_id=patient_id,
-                medication_id=medication_id,
-                alert_type=alert_type,
-                severity=severity,
-                message=subject,
-                recipient_email=target_email,
-                delivery_status="SENT",
-            )
-            return {"success": True, "status": "SENT", "message": f"Email delivered to {target_email}."}
-        except Exception as e:
-            add_alert(
-                patient_id=patient_id,
-                medication_id=medication_id,
-                alert_type=alert_type,
-                severity=severity,
-                message=f"{subject} (Error: {str(e)})",
-                recipient_email=target_email,
-                delivery_status="FAILED",
-            )
-            return {"success": False, "status": "FAILED", "message": f"SMTP Dispatch Error: {str(e)}"}
+        res = send_google_mail(
+            recipient_email=target_email,
+            subject=f"[{severity}] {subject}",
+            body_html=body_html,
+        )
+        del_status = "SENT" if res.get("success") and res.get("status") == "SENT" else "FAILED"
+        add_alert(
+            patient_id=patient_id,
+            medication_id=medication_id,
+            alert_type=alert_type,
+            severity=severity,
+            message=subject if del_status == "SENT" else f"{subject} ({res.get('message', 'Error')})",
+            recipient_email=target_email,
+            delivery_status=del_status,
+        )
+        return res
     else:
         # Graceful sandbox / demo fallback
         add_alert(
@@ -162,8 +105,8 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
     # 0. Historical reconciliation of prior unconfirmed doses
     reconcile_past_doses(patient_id)
 
-    now = datetime.now()
-    today_str = date.today().isoformat()
+    now = get_now()
+    today_str = get_today_str()
     triggered_alerts = []
 
     patient = get_patient(patient_id)
@@ -190,7 +133,7 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
         sched_time_str = dose["scheduled_time"]
         try:
             sh, sm = map(int, sched_time_str.split(":"))
-            scheduled_dt = datetime(now.year, now.month, now.day, sh, sm)
+            scheduled_dt = datetime(now.year, now.month, now.day, sh, sm, tzinfo=now.tzinfo)
         except Exception:
             continue
 
@@ -271,7 +214,7 @@ def dispatch_sos_alert(patient_id: int = 1, notes: str = "Patient pressed Emerge
     <div style="font-family: sans-serif; padding: 24px; border: 3px solid #DC2626; border-radius: 12px; background: #FEF2F2;">
         <h1 style="color: #991B1B; margin-top: 0;">🚨 EMERGENCY SOS ALERT</h1>
         <p style="font-size: 18px; color: #7F1D1D;"><strong>{patient_name}</strong> pressed the Emergency Assistance button on the Elderly Touch Portal.</p>
-        <p><strong>Timestamp:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+        <p><strong>Timestamp:</strong> {get_now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p><strong>Emergency Contact Phone:</strong> {phone}</p>
         <p><strong>Notes:</strong> {notes}</p>
         <p style="background: #FEE2E2; padding: 12px; border-radius: 6px; font-weight: bold; color: #991B1B;">

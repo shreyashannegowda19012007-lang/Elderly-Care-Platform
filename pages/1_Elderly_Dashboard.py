@@ -14,6 +14,7 @@ from db.database import get_patient, get_todays_doses, get_appointments
 from components.header import render_app_header, render_alert_banner
 from components.elderly_ui import render_elderly_dose_card, render_elderly_sos_widget
 from utils.tts import render_speech_button
+from utils.timezone_util import get_now
 
 # Security gate
 require_auth(allowed_roles=["elderly", "caretaker"])
@@ -26,8 +27,9 @@ patient_id = curr_user.get("patient_id", 1)
 patient = get_patient(patient_id)
 patient_name = patient["name"] if patient else "Eleanor"
 
-# Time-based greeting
-current_hour = datetime.now().hour
+# Time-based greeting using platform timezone
+now_dt = get_now()
+current_hour = now_dt.hour
 if current_hour < 12:
     greeting_prefix = "Good Morning"
     time_icon = "🌅"
@@ -41,7 +43,7 @@ else:
     greeting_prefix = "Good Night"
     time_icon = "🌙"
 
-today_display = datetime.now().strftime("%A, %B %d, %Y")
+today_display = now_dt.strftime("%A, %B %d, %Y")
 
 # High-accessibility Header
 col_greet, col_acc = st.columns([3, 1])
@@ -61,6 +63,31 @@ with col_greet:
 with col_acc:
     high_contrast = st.toggle("🔍 High Contrast Mode", key="toggle_high_contrast", value=st.session_state.get("high_contrast", False))
     st.session_state["high_contrast"] = high_contrast
+
+if high_contrast:
+    st.markdown("""
+        <style>
+            html, body, [class*="css"] {
+                font-size: 20px !important;
+                color: #000000 !important;
+            }
+            .stButton > button {
+                font-size: 22px !important;
+                font-weight: 800 !important;
+                min-height: 56px !important;
+                border: 3px solid #000000 !important;
+            }
+            div[data-testid="stMetricValue"] {
+                font-size: 32px !important;
+                font-weight: 900 !important;
+            }
+            .stTabs [data-baseweb="tab"] {
+                font-size: 20px !important;
+                font-weight: 700 !important;
+                padding: 12px 24px !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
 # Retrieve today's medication doses
 doses = get_todays_doses(patient_id)

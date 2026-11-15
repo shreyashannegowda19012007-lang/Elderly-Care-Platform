@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import streamlit as st
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from utils.auth import require_auth, get_current_user
 from db.database import (
@@ -18,6 +18,7 @@ from db.database import (
     mark_dose_status,
     get_medications,
     get_adherence_stats,
+    get_adherence_history,
     get_alerts,
 )
 from components.header import render_app_header, render_alert_banner
@@ -50,14 +51,24 @@ today_taken = sum(1 for d in today_doses if d["status"] == "TAKEN")
 today_pending = sum(1 for d in today_doses if d["status"] == "PENDING")
 today_missed = sum(1 for d in today_doses if d["status"] == "MISSED")
 
+# Compute genuine prior 7-day adherence for accurate delta calculation
+history_14d = get_adherence_history(patient_id, days=14)
+cutoff_date = (date.today() - timedelta(days=7)).isoformat()
+prior_7d_logs = [h for h in history_14d if h["scheduled_date"] < cutoff_date]
+prior_taken = sum(1 for h in prior_7d_logs if h["status"] == "TAKEN")
+prior_eligible = sum(1 for h in prior_7d_logs if h["status"] in ("TAKEN", "MISSED", "SKIPPED"))
+prior_rate = round((prior_taken / prior_eligible * 100), 1) if prior_eligible > 0 else stats_7d['adherence_rate']
+rate_diff = round(stats_7d['adherence_rate'] - prior_rate, 1)
+delta_label = f"{rate_diff:+.1f}% vs prior 7d"
+
 col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
 
 with col_kpi1:
     st.metric(
         label="7-Day Adherence Index",
         value=f"{stats_7d['adherence_rate']}%",
-        delta="+2.5% vs last week" if stats_7d['adherence_rate'] >= 85 else "-4.0% decline",
-        delta_color="normal" if stats_7d['adherence_rate'] >= 85 else "inverse",
+        delta=delta_label,
+        delta_color="normal" if rate_diff >= 0 else "inverse",
     )
 
 with col_kpi2:

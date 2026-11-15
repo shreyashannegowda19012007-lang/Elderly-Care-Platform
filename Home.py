@@ -21,6 +21,7 @@ st.set_page_config(
 from db.database import init_db, seed_initial_data, get_patient, get_users, get_medications, get_todays_doses
 from utils.auth import init_session_state, get_current_user, login_user, logout_user
 from utils.alerts import get_smtp_config, check_and_trigger_alerts, get_alert_summary
+from utils.google_services import get_google_services_health
 from components.header import render_app_header, render_alert_banner
 
 # Run schema initialization and initial seed data population
@@ -66,6 +67,12 @@ st.caption("Select your profile and enter your 4-digit security PIN to access sp
 curr_user = get_current_user()
 active_role = curr_user.get("role")
 
+all_users = get_users()
+eld_user = next((u for u in all_users if u["role"] == "elderly"), None)
+car_user = next((u for u in all_users if u["role"] == "caretaker"), None)
+eld_pin_active = eld_user["passcode"] if eld_user and eld_user.get("passcode") else "1234"
+car_pin_active = car_user["passcode"] if car_user and car_user.get("passcode") else "8888"
+
 if active_role:
     st.markdown(f"""
         <div style="background: #F0FDF4; border: 2px solid #10B981; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
@@ -80,13 +87,13 @@ if active_role:
 col_eld, col_car = st.columns(2)
 
 with col_eld:
-    st.markdown("""
+    st.markdown(f"""
         <div style="
             border: 2px solid #10B981;
             background: #F0FDF4;
             border-radius: 12px;
             padding: 20px;
-            min-height: 220px;
+            min-height: 200px;
         ">
             <h3 style="color: #065F46; margin-top: 0; display: flex; align-items: center; gap: 8px;">
                 <span>👴</span> Senior / Elderly Portal
@@ -96,26 +103,30 @@ with col_eld:
                 and emergency SOS alert trigger.
             </p>
             <p style="font-size: 12px; color: #065F46;"><strong>Assigned Profile:</strong> Eleanor Vance (Age 78)</p>
-            <p style="font-size: 12px; color: #065F46;"><strong>Default Passcode:</strong> <code>1234</code></p>
+            <p style="font-size: 12px; color: #065F46;"><strong>Configured Passcode:</strong> <code>{eld_pin_active}</code></p>
         </div>
     """, unsafe_allow_html=True)
-    
-    eld_pin = st.text_input("Senior Passcode (PIN)", type="password", value="1234", key="home_eld_pin")
-    if st.button("🚀 Enter Senior Portal (PIN: 1234)", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
-        if login_user("elderly", eld_pin):
-            st.success("Authenticated as Eleanor Vance (Senior)!")
+
+    if active_role == "elderly":
+        if st.button("🚀 Go to Senior Portal (Active Session)", use_container_width=True, type="primary"):
             st.switch_page("pages/1_Elderly_Dashboard.py")
-        else:
-            st.error("Invalid Senior PIN. Default is 1234.")
+    else:
+        eld_pin = st.text_input("Senior Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {eld_pin_active})", key="home_eld_pin")
+        if st.button("🚀 Unlock & Enter Senior Portal", use_container_width=True, type="primary" if active_role == "elderly" else "secondary"):
+            if eld_pin and login_user("elderly", eld_pin):
+                st.success("Authenticated as Eleanor Vance (Senior)!")
+                st.switch_page("pages/1_Elderly_Dashboard.py")
+            else:
+                st.error(f"Invalid Senior PIN. Please enter configured PIN (Active: {eld_pin_active}).")
 
 with col_car:
-    st.markdown("""
+    st.markdown(f"""
         <div style="
             border: 2px solid #2563EB;
             background: #EFF6FF;
             border-radius: 12px;
             padding: 20px;
-            min-height: 220px;
+            min-height: 200px;
         ">
             <h3 style="color: #1E40AF; margin-top: 0; display: flex; align-items: center; gap: 8px;">
                 <span>🩺</span> Caregiver Clinical Cockpit
@@ -125,17 +136,21 @@ with col_car:
                 drug-drug interaction safety checker, and automated SMTP escalation controls.
             </p>
             <p style="font-size: 12px; color: #1E40AF;"><strong>Assigned Profile:</strong> Sarah Vance (Caregiver)</p>
-            <p style="font-size: 12px; color: #1E40AF;"><strong>Default Passcode:</strong> <code>8888</code></p>
+            <p style="font-size: 12px; color: #1E40AF;"><strong>Configured Passcode:</strong> <code>{car_pin_active}</code></p>
         </div>
     """, unsafe_allow_html=True)
-    
-    car_pin = st.text_input("Caregiver Passcode (PIN)", type="password", value="8888", key="home_car_pin")
-    if st.button("🚀 Enter Caregiver Cockpit (PIN: 8888)", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
-        if login_user("caretaker", car_pin):
-            st.success("Authenticated as Sarah Vance (Caregiver)!")
+
+    if active_role == "caretaker":
+        if st.button("🚀 Go to Caregiver Cockpit (Active Session)", use_container_width=True, type="primary"):
             st.switch_page("pages/2_Caretaker_Dashboard.py")
-        else:
-            st.error("Invalid Caregiver PIN. Default is 8888.")
+    else:
+        car_pin = st.text_input("Caregiver Passcode (PIN)", type="password", placeholder=f"Enter 4-digit PIN (Configured: {car_pin_active})", key="home_car_pin")
+        if st.button("🚀 Unlock & Enter Caregiver Cockpit", use_container_width=True, type="primary" if active_role == "caretaker" else "secondary"):
+            if car_pin and login_user("caretaker", car_pin):
+                st.success("Authenticated as Sarah Vance (Caregiver)!")
+                st.switch_page("pages/2_Caretaker_Dashboard.py")
+            else:
+                st.error(f"Invalid Caregiver PIN. Please enter configured PIN (Active: {car_pin_active}).")
 
 st.markdown("---")
 
@@ -164,11 +179,11 @@ with c2:
     )
 
 with c3:
-    smtp_status = "🟢 Live SMTP TLS" if smtp_cfg["is_configured"] else "🟡 Sandbox / Audit Log"
+    google_health = get_google_services_health()
     st.metric(
-        label="Email Alert Engine",
-        value=smtp_status,
-        help="Proactive SMTP notification delivery status",
+        label="Google Services & Alert Gateway",
+        value=google_health["status_label"],
+        help=f"Google Alert Gateway ({google_health['server']})",
     )
 
 with c4:
