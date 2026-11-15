@@ -84,7 +84,7 @@ with c_kpis:
                 <span style="background: #10B981; color: white; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700;">GRADE: A+ OPTIMAL</span>
             </div>
             <p style="color: #334155; font-size: 14px; line-height: 1.5; margin: 0;">
-                Patient <strong>{patient_name}</strong> demonstrates high adherence (<strong>{stats['adherence_rate']}%</strong>) over the past {selected_period} days. 
+                Patient <strong>{patient_name}</strong> demonstrates high adherence (<strong>{stats['adherence_rate']}%</strong>) over the past {selected_period} days.
                 Active continuous streak is <strong>{stats['streak_days']} consecutive days</strong>.
                 Most doses are administered within 15 minutes of target window, indicating strong behavioral consistency.
             </p>

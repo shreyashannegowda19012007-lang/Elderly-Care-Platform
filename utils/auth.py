@@ -277,7 +277,7 @@ def require_auth(allowed_roles: list[str] | None = None) -> bool:
     if allowed_roles and current_role not in allowed_roles:
         st.error(f"Access Restricted: This section requires {' or '.join(allowed_roles).capitalize()} authorization.")
         st.write(f"You are currently logged in as **{st.session_state.get('user_name', 'Unknown')}** ({str(current_role).capitalize()}).")
-        
+
         target_role = allowed_roles[0]
         users = get_users()
         target_u = next((u for u in users if u["role"] == target_role), None)

@@ -9,6 +9,7 @@ Tier 4: Real-World Scenarios — Full end-to-end user journeys (Senior, Caretake
 
 from __future__ import annotations
 
+import contextlib
 import os
 from datetime import date, datetime, timedelta
 
@@ -61,10 +62,8 @@ def setup_isolated_test_env(tmp_path, monkeypatch):
     yield
 
     if os.path.exists(test_db_path):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(test_db_path)
-        except OSError:
-            pass
 
 
 # ==============================================================================

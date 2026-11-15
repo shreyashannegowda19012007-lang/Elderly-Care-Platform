@@ -118,7 +118,7 @@ with tab_apts:
             apt_title = st.text_input("Visit Title *", placeholder="e.g., Geriatric Cardiology Consultation")
             apt_doc = st.text_input("Physician / Specialist *", placeholder="e.g., Dr. Robert Chen, MD")
             apt_address = st.text_input("Clinic / Hospital Address *", placeholder="e.g., St. Luke Medical Center, Suite 300")
-            
+
             c_d1, c_d2 = st.columns(2)
             with c_d1:
                 apt_date_val = st.date_input("Date", min_value=date.today())

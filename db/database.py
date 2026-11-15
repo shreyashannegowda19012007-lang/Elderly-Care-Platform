@@ -72,7 +72,6 @@ def get_db_pool_manager(db_path: str | None = None) -> DatabaseConnectionManager
 def invalidate_analytics_cache() -> None:
     """Invalidate all cached Streamlit data computations upon database writes."""
     try:
-        import streamlit as st
         st.cache_data.clear()
     except (AttributeError, RuntimeError):
         pass
@@ -83,7 +82,7 @@ def _current_today_str() -> str:
     try:
         from utils.timezone_util import get_today_str
         return get_today_str()
-    except (ImportError, AttributeError):
+    except (ImportError, AttributeError, TypeError):
         return date.today().isoformat()
 
 
@@ -92,7 +91,7 @@ def _current_today_date() -> date:
     try:
         from utils.timezone_util import get_today_date
         return get_today_date()
-    except (ImportError, AttributeError):
+    except (ImportError, AttributeError, TypeError):
         return date.today()
 
 
@@ -124,7 +123,6 @@ def reset_database() -> bool:
     seed_initial_data()
     invalidate_analytics_cache()
     try:
-        import streamlit as st
         st.cache_resource.clear()
     except (AttributeError, RuntimeError):
         pass
@@ -299,7 +297,7 @@ def seed_initial_data() -> None:
         # 1. Insert Users
         cursor.execute("""
             INSERT INTO users (role, name, passcode, phone, email, emergency_contact_name, emergency_contact_phone, notes)
-            VALUES 
+            VALUES
             ('elderly', 'Eleanor Vance', '1234', '+1 (555) 234-5678', 'eleanor.vance@example.org', 'Sarah Vance (Daughter)', '+1 (555) 987-6543', 'Mild hypertension, Type 2 diabetes managed with diet & oral meds. Prefers voice prompts.'),
             ('caretaker', 'Sarah Vance', '8888', '+1 (555) 987-6543', 'sarah.vance@example.org', 'Dr. Robert Chen', '+1 (555) 345-6789', 'Primary caretaker and daughter. Receives instant escalation email alerts.')
         """)
@@ -362,7 +360,7 @@ def seed_initial_data() -> None:
         today_str = today.isoformat()
         current_hour = datetime.now().hour
 
-        for med_name, (m_id, m_time) in med_dict.items():
+        for m_id, m_time in med_dict.values():
             h, m = map(int, m_time.split(":"))
             if h < current_hour:
                 status = "TAKEN"
@@ -507,14 +505,14 @@ def get_medications(patient_id: int, active_only: bool = True) -> list[dict[str,
         cursor = conn.cursor()
         if active_only:
             cursor.execute("""
-                SELECT * FROM medications 
-                WHERE patient_id = ? AND is_active = 1 
+                SELECT * FROM medications
+                WHERE patient_id = ? AND is_active = 1
                 ORDER BY scheduled_time ASC;
             """, (patient_id,))
         else:
             cursor.execute("""
-                SELECT * FROM medications 
-                WHERE patient_id = ? 
+                SELECT * FROM medications
+                WHERE patient_id = ?
                 ORDER BY is_active DESC, scheduled_time ASC;
             """, (patient_id,))
         return [dict(row) for row in cursor.fetchall()]
@@ -646,7 +644,7 @@ def get_todays_doses(patient_id: int, date_str: str | None = None) -> list[dict[
 
         # Ensure active medications have log entries for this date
         cursor.execute("""
-            SELECT id, scheduled_time FROM medications 
+            SELECT id, scheduled_time FROM medications
             WHERE patient_id = ? AND is_active = 1;
         """, (patient_id,))
         active_meds = cursor.fetchall()
@@ -660,7 +658,7 @@ def get_todays_doses(patient_id: int, date_str: str | None = None) -> list[dict[
 
         # Retrieve combined schedule
         cursor.execute("""
-            SELECT 
+            SELECT
                 l.id as log_id,
                 l.scheduled_date,
                 l.scheduled_time,
@@ -865,7 +863,7 @@ def get_adherence_history(patient_id: int, days: int = 14) -> list[dict[str, Any
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 l.id as log_id,
                 l.scheduled_date,
                 l.scheduled_time,
@@ -895,7 +893,7 @@ def get_adherence_stats(patient_id: int, days: int = 7) -> dict[str, Any]:
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_doses,
                 SUM(CASE WHEN status = 'TAKEN' THEN 1 ELSE 0 END) as taken_count,
                 SUM(CASE WHEN status = 'MISSED' THEN 1 ELSE 0 END) as missed_count,
@@ -980,13 +978,13 @@ def get_appointments(patient_id: int, status: str | None = None) -> list[dict[st
         cursor = conn.cursor()
         if status:
             cursor.execute("""
-                SELECT * FROM appointments 
+                SELECT * FROM appointments
                 WHERE patient_id = ? AND status = ?
                 ORDER BY appointment_date ASC, appointment_time ASC;
             """, (patient_id, status))
         else:
             cursor.execute("""
-                SELECT * FROM appointments 
+                SELECT * FROM appointments
                 WHERE patient_id = ?
                 ORDER BY appointment_date ASC, appointment_time ASC;
             """, (patient_id,))

@@ -11,6 +11,7 @@ from typing import Any
 import streamlit as st
 
 from db.database import mark_dose_status
+from utils.alerts import dispatch_sos_alert
 from utils.tts import render_speech_button
 
 
@@ -208,6 +209,5 @@ def render_elderly_sos_widget(patient: dict[str, Any]) -> None:
     """, unsafe_allow_html=True)
 
     if st.button("DISPATCH EMERGENCY ASSISTANCE REQUEST", key="elderly_big_sos", type="primary", width="stretch"):
-        from utils.alerts import dispatch_sos_alert
         dispatch_sos_alert(patient_id=patient["id"], notes="Triggered from Elderly Home Dashboard")
         st.error(f"Help alert dispatched: Your caregiver {ec_name} has been notified immediately.")

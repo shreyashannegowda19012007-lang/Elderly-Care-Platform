@@ -30,13 +30,13 @@ def apply_custom_styles() -> None:
             }
 
             /* HIDE ALL STREAMLIT DEPLOY, HEADER, TOOLBAR, & MENU SELECTORS */
-            header, 
-            [data-testid="stHeader"], 
-            .stAppHeader, 
-            [data-testid="stToolbar"], 
-            [data-testid="stAppDeployButton"], 
-            .stDeployButton, 
-            #MainMenu, 
+            header,
+            [data-testid="stHeader"],
+            .stAppHeader,
+            [data-testid="stToolbar"],
+            [data-testid="stAppDeployButton"],
+            .stDeployButton,
+            #MainMenu,
             footer,
             [data-testid="stDecoration"] {
                 display: none !important;
@@ -49,8 +49,8 @@ def apply_custom_styles() -> None:
             }
 
             /* COMPLETELY REMOVE & HIDE THE VERTICAL SIDEBAR & EXPAND/COLLAPSE CHEVRON */
-            [data-testid="stSidebar"], 
-            section[data-testid="stSidebar"], 
+            [data-testid="stSidebar"],
+            section[data-testid="stSidebar"],
             [data-testid="collapsedControl"],
             [data-testid="stSidebarNav"] {
                 display: none !important;

@@ -20,7 +20,7 @@ def render_speech_button(text_to_speak: str, label: str = "Read Out Loud", butto
     safe_text = html.escape(text_to_speak.replace('"', '\\"').replace("\n", " "))
     html_code = f"""
     <div style="margin: 8px 0;">
-        <button id="{button_id}" onclick="speakElderlyText_{button_id}()" 
+        <button id="{button_id}" onclick="speakElderlyText_{button_id}()"
             style="
                 background: linear-gradient(135deg, #10B981, #059669);
                 color: white;

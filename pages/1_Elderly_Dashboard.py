@@ -139,7 +139,7 @@ with col_audio:
         speech_overview = f"Hello {patient_name.split()[0]}. Today is {today_display}. You have {len(pending_names)} doses remaining: {', '.join(pending_names)}. Please take your medicines on time."
     else:
         speech_overview = f"Congratulations {patient_name.split()[0]}! You have completed all of your scheduled medications for today. Have a wonderful day!"
-    
+
     st.markdown("""
         <div style="padding-top: 10px;">
             <span style="font-size: 13px; font-weight: 600; color: #64748B; display: block; margin-bottom: 6px;">Voice Companion:</span>
@@ -212,7 +212,7 @@ appointments = get_appointments(patient_id, status="SCHEDULED")
 if appointments:
     next_apt = appointments[0]
     apt_date = datetime.strptime(next_apt["appointment_date"], "%Y-%m-%d").strftime("%A, %B %d")
-    
+
     st.markdown(f"""
         <div class="gc-card" style="
             background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%);
@@ -266,7 +266,7 @@ if appointments:
             </div>
         </div>
     """, unsafe_allow_html=True)
-    
+
     apt_speech = f"Reminder: You have an appointment for {next_apt['title']} with {next_apt['doctor_name']} on {apt_date} at {next_apt['appointment_time']}. Location is {next_apt['clinic_address']}."
     render_speech_button(text_to_speak=apt_speech, label="Listen to Appointment Details", button_id="tts_next_appointment")
 else:

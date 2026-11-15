@@ -6,6 +6,7 @@ idempotency, physiological validation, cache invalidation, and Google service fa
 
 from __future__ import annotations
 
+import contextlib
 import os
 from datetime import date, timedelta
 
@@ -46,10 +47,8 @@ def setup_adversarial_env(tmp_path, monkeypatch):
     yield
 
     if os.path.exists(test_db_path):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(test_db_path)
-        except OSError:
-            pass
 
 
 class TestAdversarialAuthAndSecurity:

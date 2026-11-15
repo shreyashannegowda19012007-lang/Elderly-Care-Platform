@@ -2,12 +2,25 @@
 Unit and integration tests for database operations and schema integrity.
 """
 
+import contextlib
 import os
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
+import db as db_pkg
 import db.database as db
+import db.queries as db_q
+from db.models import (
+    AdherenceLog,
+    Alert,
+    AlertLog,
+    Appointment,
+    DrugInteraction,
+    Medication,
+    User,
+    VitalsLog,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -19,10 +32,8 @@ def setup_test_db(tmp_path, monkeypatch):
     db.seed_initial_data()
     yield
     if os.path.exists(test_db_path):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(test_db_path)
-        except OSError:
-            pass
 
 
 def test_seed_data_integrity():
@@ -175,7 +186,6 @@ def test_appointments_and_vitals():
 
 def test_reconcile_past_doses():
     """Verify unconfirmed past doses are transitioned to MISSED status."""
-    from datetime import timedelta
     patient = db.get_patient()
     p_id = patient["id"]
     meds = db.get_medications(p_id)
@@ -200,17 +210,6 @@ def test_reconcile_past_doses():
 
 def test_models_instantiation_and_serialization():
     """Verify dataclass domain models from db.models instantiate and serialize accurately."""
-    from db.models import (
-        AdherenceLog,
-        Alert,
-        AlertLog,
-        Appointment,
-        DrugInteraction,
-        Medication,
-        User,
-        VitalsLog,
-    )
-
     # User model
     u = User(name="Test User", role="elderly", passcode="1234", phone="555-0100")
     u_dict = u.to_dict()
@@ -292,9 +291,6 @@ def test_models_instantiation_and_serialization():
 
 def test_modular_queries_and_init_exports():
     """Verify db package __init__.py cleanly re-exports all models and queries for full backward compatibility."""
-    import db as db_pkg
-    import db.queries as db_q
-
     # Verify query functions exist in db.queries
     assert callable(db_q.get_patient)
     assert callable(db_q.get_medications)

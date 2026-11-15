@@ -13,7 +13,7 @@ import streamlit as st
 
 from components.styles import apply_custom_styles
 from utils.alerts import check_and_trigger_alerts, dispatch_sos_alert, get_alert_summary
-from utils.auth import get_current_user, logout_user
+from utils.auth import get_current_user, is_authenticated, logout_user
 
 
 def _detect_current_page() -> str:
@@ -32,7 +32,6 @@ def render_app_header() -> None:
     # Apply universal modern design system styles
     apply_custom_styles()
 
-    from utils.auth import is_authenticated
     authenticated = is_authenticated()
     current_user = get_current_user()
     role = current_user.get("role")

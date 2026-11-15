@@ -11,6 +11,7 @@ import zoneinfo
 from datetime import date, datetime
 
 import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 
 
 def get_app_timezone() -> zoneinfo.ZoneInfo | datetime.tzinfo:
@@ -20,8 +21,6 @@ def get_app_timezone() -> zoneinfo.ZoneInfo | datetime.tzinfo:
     """
     tz_name = None
     try:
-        from streamlit.errors import StreamlitSecretNotFoundError
-
         if hasattr(st, "secrets") and "timezone" in st.secrets:
             tz_name = str(st.secrets["timezone"]).strip()
         elif hasattr(st, "secrets") and "app" in st.secrets and "timezone" in st.secrets["app"]:

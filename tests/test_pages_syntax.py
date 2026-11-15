@@ -32,7 +32,7 @@ def test_python_file_ast_validity(file_path):
     rel_path = os.path.relpath(file_path, WORKSPACE_ROOT)
     with open(file_path, "r", encoding="utf-8") as f:
         source_code = f.read()
-    
+
     # Must parse without syntax errors
     tree = ast.parse(source_code, filename=rel_path)
     assert tree is not None, f"Failed to parse AST for {rel_path}"

@@ -19,7 +19,7 @@ from db.database import (
     mark_dose_status,
     reconcile_past_doses,
 )
-from utils.google_services import send_google_mail
+from utils.google_services import get_google_services_config, send_google_mail
 from utils.timezone_util import get_now, get_today_str
 
 
@@ -28,7 +28,6 @@ def get_smtp_config() -> dict[str, Any]:
     Retrieve SMTP configuration from Streamlit secrets or OS environment.
     Falls back gracefully if unconfigured.
     """
-    from utils.google_services import get_google_services_config
     return get_google_services_config()
 
 
@@ -113,11 +112,11 @@ def check_and_trigger_alerts(patient_id: int = 1, force_check: bool = False) -> 
     doses = get_todays_doses(patient_id, today_str)
     existing_alerts = get_alerts(patient_id, limit=100)
     todays_sent_missed_meds = {
-        a["medication_id"] for a in existing_alerts 
+        a["medication_id"] for a in existing_alerts
         if a["alert_type"] == "MISSED_DOSE" and str(a.get("sent_at", "")).startswith(today_str)
     }
     todays_sent_refill_meds = {
-        a["medication_id"] for a in existing_alerts 
+        a["medication_id"] for a in existing_alerts
         if a["alert_type"] == "REFILL_ALERT" and str(a.get("sent_at", "")).startswith(today_str)
     }
 

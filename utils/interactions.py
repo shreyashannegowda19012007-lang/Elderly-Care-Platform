@@ -6,6 +6,7 @@ rules to prevent adverse drug events (ADEs).
 
 from __future__ import annotations
 
+import contextlib
 import re
 import sqlite3
 from typing import Any
@@ -129,10 +130,8 @@ def evaluate_interactions(
 
     # Combine static clinical rules with any database-stored rules
     db_rules = []
-    try:
+    with contextlib.suppress(sqlite3.Error, OSError, ValueError, KeyError):
         db_rules = get_drug_interactions()
-    except (sqlite3.Error, OSError, ValueError, KeyError):
-        pass
 
     combined_rules = CLINICAL_RULES + [
         {

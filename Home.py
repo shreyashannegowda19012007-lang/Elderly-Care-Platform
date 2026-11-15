@@ -8,15 +8,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-# Configure Streamlit page settings
-st.set_page_config(
-    page_title="GoldenCare | Compassionate Healthcare Platform",
-    page_icon=None,
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-# Initialize database and tables
 from components.header import render_alert_banner, render_app_header
 from db.database import (
     get_patient,
@@ -28,6 +19,14 @@ from db.database import (
 from utils.alerts import get_alert_summary
 from utils.auth import get_current_user, init_session_state, login_user
 from utils.google_services import get_google_services_health
+
+# Configure Streamlit page settings
+st.set_page_config(
+    page_title="GoldenCare | Compassionate Healthcare Platform",
+    page_icon=None,
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 # Run schema initialization and initial seed data population
 init_db()
@@ -73,7 +72,7 @@ if active_role:
     st.markdown(f"""
         <div style="background: #ECFDF5; border: 1.5px solid #10B981; border-radius: 12px; padding: 12px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div>
-                <strong style="color: #065F46; font-size: 15px;">Active Profile:</strong> 
+                <strong style="color: #065F46; font-size: 15px;">Active Profile:</strong>
                 <span style="color: #047857; font-size: 15px; font-weight: 700;">{curr_user.get('name')} ({active_role.capitalize()})</span>
             </div>
             <span style="font-size: 12.5px; color: #065F46;">Switch below or use the top navigation.</span>
