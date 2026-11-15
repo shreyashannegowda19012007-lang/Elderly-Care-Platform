@@ -6,6 +6,7 @@ audio readouts, and effortless one-tap dose logging.
 
 from __future__ import annotations
 
+import textwrap
 from datetime import datetime
 
 import streamlit as st
@@ -46,21 +47,13 @@ today_display = now_dt.strftime("%A, %B %d, %Y")
 col_greet, col_acc = st.columns([3, 1])
 
 with col_greet:
-    st.markdown(f"""
+    st.markdown(textwrap.dedent(f"""
         <div style="margin-bottom: 14px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                 <span style="font-size: 16px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 0.05em;">
                     {today_display}
                 </span>
-                <span style="
-                    background: #FEF3C7;
-                    color: #92400E;
-                    padding: 3px 10px;
-                    border-radius: 9999px;
-                    font-size: 13px;
-                    font-weight: 700;
-                    border: 1px solid #FCD34D;
-                ">
+                <span style="background: #FEF3C7; color: #92400E; padding: 3px 10px; border-radius: 9999px; font-size: 13px; font-weight: 700; border: 1px solid #FCD34D;">
                     Adherence Streak: 3 Days
                 </span>
             </div>
@@ -68,7 +61,7 @@ with col_greet:
                 {greeting_prefix}, {patient_name.split()[0]}!
             </h1>
         </div>
-    """, unsafe_allow_html=True)
+    """).strip(), unsafe_allow_html=True)
 
 with col_acc:
     high_contrast = st.toggle("High Contrast Mode", key="toggle_high_contrast", value=st.session_state.get("high_contrast", False))
@@ -110,7 +103,7 @@ col_prog, col_audio = st.columns([2.6, 1.4])
 
 with col_prog:
     progress_val = (taken_doses / total_doses) if total_doses > 0 else 1.0
-    st.markdown(f"""
+    st.markdown(textwrap.dedent(f"""
         <div class="gc-card" style="padding: 18px 24px; margin-bottom: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span style="font-size: 17px; font-weight: 800; color: #1E293B;">
@@ -129,7 +122,7 @@ with col_prog:
                 {taken_doses} of {total_doses} doses completed ({int(progress_val * 100)}%)
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """).strip(), unsafe_allow_html=True)
     st.progress(progress_val)
 
 with col_audio:
@@ -213,59 +206,34 @@ if appointments:
     next_apt = appointments[0]
     apt_date = datetime.strptime(next_apt["appointment_date"], "%Y-%m-%d").strftime("%A, %B %d")
 
-    st.markdown(f"""
-        <div class="gc-card" style="
-            background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%);
-            border: 2px solid #3B82F6;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-        ">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="
-                        width: 44px;
-                        height: 44px;
-                        background: #DBEAFE;
-                        border-radius: 10px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: #1D4ED8;
-                        font-weight: 800;
-                        font-size: 13px;
-                        letter-spacing: 0.5px;
-                    ">CLINIC</div>
+    apt_card_html = textwrap.dedent(f"""
+        <div class="gc-card" style="background:linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%);border:2px solid #3B82F6;border-radius:20px;padding:24px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:44px;height:44px;background:#DBEAFE;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#1D4ED8;font-weight:800;font-size:13px;letter-spacing:0.5px;">CLINIC</div>
                     <div>
-                        <h3 style="color: #1E40AF; margin: 0; font-size: 22px; font-weight: 800;">{next_apt['title']}</h3>
-                        <span style="font-size: 15px; color: #1D4ED8; font-weight: 600;">Physician: {next_apt['doctor_name']}</span>
+                        <h3 style="color:#1E40AF;margin:0;font-size:22px;font-weight:800;">{next_apt['title']}</h3>
+                        <span style="font-size:15px;color:#1D4ED8;font-weight:600;">Physician: {next_apt['doctor_name']}</span>
                     </div>
                 </div>
-                <span style="
-                    background: #2563EB;
-                    color: white;
-                    padding: 6px 14px;
-                    border-radius: 9999px;
-                    font-weight: 700;
-                    font-size: 14px;
-                    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
-                ">
+                <span style="background:#2563EB;color:white;padding:6px 14px;border-radius:9999px;font-weight:700;font-size:14px;box-shadow:0 4px 10px rgba(37, 99, 235, 0.25);">
                     {apt_date} &bull; {next_apt['appointment_time']}
                 </span>
             </div>
-            <div style="font-size: 15px; color: #334155; margin-bottom: 8px;">
+            <div style="font-size:15px;color:#334155;margin-bottom:8px;">
                 <strong>Facility / Address:</strong> {next_apt['clinic_address']}
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 13.5px;">
-                <span style="background: #F1F5F9; color: #1E293B; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13.5px;">
+                <span style="background:#F1F5F9;color:#1E293B;padding:4px 10px;border-radius:8px;font-weight:600;">
                     Transport: {'Arranged by Caregiver' if next_apt['transport_required'] else 'Self-Transport'}
                 </span>
-                <span style="background: #F1F5F9; color: #1E293B; padding: 4px 10px; border-radius: 8px; font-weight: 600;">
+                <span style="background:#F1F5F9;color:#1E293B;padding:4px 10px;border-radius:8px;font-weight:600;">
                     Prep Notes: {next_apt['prep_notes']}
                 </span>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """).strip()
+    st.markdown(apt_card_html, unsafe_allow_html=True)
 
     apt_speech = f"Reminder: You have an appointment for {next_apt['title']} with {next_apt['doctor_name']} on {apt_date} at {next_apt['appointment_time']}. Location is {next_apt['clinic_address']}."
     render_speech_button(text_to_speak=apt_speech, label="Listen to Appointment Details", button_id="tts_next_appointment")
